@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
               if (state is Authenticated) {
                 return const HomeScreen();
               }
-              if (state is Unauthenticated || state is AuthError) {
+              if (state is Unauthenticated || state is AuthError || state is AuthLoading) {
                 return const LoginScreen();
               }
 

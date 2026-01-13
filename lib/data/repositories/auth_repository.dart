@@ -20,7 +20,9 @@ class AuthRepository {
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      throw Exception(e.message);
+      throw Exception('Code: ${e.code} - Message: ${e.message}');
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 
@@ -35,7 +37,9 @@ class AuthRepository {
         password: password,
       );
     } on FirebaseAuthException catch (e) {
-      throw Exception(e.message);
+      throw Exception('Code: ${e.code} - Message: ${e.message}');
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 
