@@ -1,7 +1,6 @@
+// Dans home_page.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../bloc/auth_bloc/auth_bloc.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -13,14 +12,29 @@ class HomeScreen extends StatelessWidget {
         title: const Text("Mood Jar"),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.person),
             onPressed: () {
-              context.read<AuthBloc>().add(AuthLogoutRequested());
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
             },
           ),
         ],
       ),
-      body: Center(child: const Text("Welcome! You are logged in.")),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("Welcome to the home page !"),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {},
+              child: const Text("Ajouter une humeur"),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
