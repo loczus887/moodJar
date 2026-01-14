@@ -392,7 +392,7 @@ class ProfileScreen extends StatelessWidget {
     return Switch(
       value: value,
       onChanged: (val) {},
-      activeColor: const Color(0xFFB39DDB),
+      activeThumbColor: const Color(0xFFB39DDB),
       activeTrackColor: const Color(0xFFB39DDB).withOpacity(0.3),
       inactiveThumbColor: Colors.grey[300],
       inactiveTrackColor: Colors.grey[200],
