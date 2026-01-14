@@ -18,10 +18,6 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
 
   // Colors extracted from your HTML (Tailwind Config)
   final Color _primaryColor = const Color(0xFFC7C8F0);
-  final Color _surfaceColor = Colors.white;
-  final Color _backgroundColor = const Color(0xFFFAFAF9);
-  final Color _textMain = const Color(0xFF101019);
-  final Color _textMuted = const Color(0xFF58598D);
 
   // Data list to facilitate UI construction and Firebase submission
   final List<Map<String, dynamic>> _moods = [
@@ -97,13 +93,22 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final surfaceColor = theme.cardColor;
+    final textMain =
+        theme.textTheme.bodyLarge?.color ??
+        (isDark ? Colors.white : const Color(0xFF101019));
+    final textMuted = isDark ? Colors.grey[400]! : const Color(0xFF58598D);
+
     return Scaffold(
-      backgroundColor: _backgroundColor,
+      backgroundColor: backgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             // Header (Back button and Date)
-            _buildHeader(),
+            _buildHeader(textMain, textMuted, isDark),
 
             // Content with Scroll
             Expanded(
@@ -115,7 +120,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
                     Text(
                       'How are you feeling?',
                       style: TextStyle(
-                        color: _textMain,
+                        color: textMain,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         letterSpacing: -0.5,
@@ -124,12 +129,12 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
                     const SizedBox(height: 30),
 
                     // Mood Grid
-                    _buildMoodGrid(),
+                    _buildMoodGrid(surfaceColor, textMain),
 
                     const SizedBox(height: 30),
 
                     // Text Box (Journal)
-                    _buildJournalInput(),
+                    _buildJournalInput(surfaceColor, textMain, textMuted),
 
                     const SizedBox(height: 100),
                     // Space so the floating button doesn't cover content
@@ -151,7 +156,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
             onPressed: _isSaving ? null : _saveMoodToFirebase,
             style: ElevatedButton.styleFrom(
               backgroundColor: _primaryColor,
-              foregroundColor: _textMain,
+              foregroundColor: const Color(0xFF101019),
               elevation: 8,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
@@ -179,17 +184,19 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(Color textMain, Color textMuted, bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back, color: _textMain),
+            icon: Icon(Icons.arrow_back, color: textMain),
             onPressed: () => Navigator.pop(context),
             style: IconButton.styleFrom(
-              backgroundColor: Colors.black.withOpacity(0.05),
+              backgroundColor: isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.05),
             ),
           ),
           Column(
@@ -198,7 +205,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
                 // You can use the 'intl' package to format the real date here
                 'TODAY',
                 style: TextStyle(
-                  color: _textMuted,
+                  color: textMuted,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.5,
@@ -213,7 +220,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
   }
 
   // Nova Grelha com Scroll Horizontal
-  Widget _buildMoodGrid() {
+  Widget _buildMoodGrid(Color surfaceColor, Color textMain) {
     // SizedBox define a altura da área de scroll.
     // 380px é suficiente para caber 2 linhas de cartões + espaços
     return SizedBox(
@@ -232,14 +239,14 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
               1.1, // Controla a "magreza" do cartão (Altura vs Largura)
         ),
         itemBuilder: (context, index) {
-          return _buildMoodCard(index);
+          return _buildMoodCard(index, surfaceColor, textMain);
         },
       ),
     );
   }
 
   // O Design do Cartão (Simplificado para funcionar na grelha)
-  Widget _buildMoodCard(int index) {
+  Widget _buildMoodCard(int index, Color surfaceColor, Color textMain) {
     final bool isSelected = _selectedMoodIndex == index;
     final mood = _moods[index];
 
@@ -249,7 +256,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: _surfaceColor,
+          color: surfaceColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? _primaryColor : Colors.transparent,
@@ -287,7 +294,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
             Text(
               mood['label'],
               style: TextStyle(
-                color: _textMain,
+                color: textMain,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
@@ -314,11 +321,15 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
   }
 
   // Text Input
-  Widget _buildJournalInput() {
+  Widget _buildJournalInput(
+    Color surfaceColor,
+    Color textMain,
+    Color textMuted,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _surfaceColor,
+        color: surfaceColor,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -337,7 +348,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
               const SizedBox(width: 8),
               Text(
                 'Brief Description',
-                style: TextStyle(fontWeight: FontWeight.bold, color: _textMain),
+                style: TextStyle(fontWeight: FontWeight.bold, color: textMain),
               ),
             ],
           ),
@@ -345,9 +356,10 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
           TextField(
             controller: _journalController,
             maxLines: 4,
+            style: TextStyle(color: textMain),
             decoration: InputDecoration(
               hintText: "I'm feeling this way because...",
-              hintStyle: TextStyle(color: _textMuted.withOpacity(0.5)),
+              hintStyle: TextStyle(color: textMuted.withOpacity(0.5)),
               border: InputBorder.none,
             ),
           ),
