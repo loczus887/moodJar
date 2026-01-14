@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 // 1. New Import
 import {GoogleGenAI} from "@google/genai";
 
@@ -22,6 +23,10 @@ if (!apiKey) {
 
 // 2. New Client Initialization
 const ai = new GoogleGenAI({apiKey: apiKey});
+
+// Fix for __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const getSystemPrompt = () => {
     try {
@@ -111,6 +116,10 @@ app.post('/api/analyze', async (req: Request, res: Response): Promise<any> => {
             error: error.message || 'Internal Server Error',
         });
     }
+});
+
+app.get('/health', (_req: Request, res: Response) => {
+    res.status(200).send('OK');
 });
 
 app.listen(port, () => {
