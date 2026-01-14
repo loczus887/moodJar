@@ -1,9 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth_bloc/auth_bloc.dart';
+import '../widgets/custom_navigation_bar.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  int _selectedIndex = 4; // Settings index
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    if (index == 0) {
+      Navigator.popUntil(context, (route) => route.isFirst);
+    }
+    // Add other routing logic here if needed
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,84 +146,64 @@ class ProfileScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Icon(
-                      Icons.chevron_right,
-                      color: Colors.grey[400],
-                    ),
+                    Icon(Icons.chevron_right, color: Colors.grey[400]),
                   ],
                 ),
               ),
               const SizedBox(height: 32),
-              _buildSection(
-                'APPEARANCE',
-                [
-                  _buildAppearanceToggle(),
-                ],
-              ),
+              _buildSection('APPEARANCE', [_buildAppearanceToggle()]),
               const SizedBox(height: 24),
-              _buildSection(
-                'NOTIFICATIONS',
-                [
-                  _buildNotificationItem(
-                    icon: Icons.notifications,
-                    iconColor: const Color(0xFFB39DDB),
-                    title: 'Daily Reminder',
-                    trailing: _buildSwitch(true),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildNotificationItem(
-                    icon: Icons.access_time,
-                    iconColor: const Color(0xFF64B5F6),
-                    title: 'Time',
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        '08:00 PM',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF2D2D2D),
-                        ),
-                      ),
+              _buildSection('NOTIFICATIONS', [
+                _buildNotificationItem(
+                  icon: Icons.notifications,
+                  iconColor: const Color(0xFFB39DDB),
+                  title: 'Daily Reminder',
+                  trailing: _buildSwitch(true),
+                ),
+                const SizedBox(height: 12),
+                _buildNotificationItem(
+                  icon: Icons.access_time,
+                  iconColor: const Color(0xFF64B5F6),
+                  title: 'Time',
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      '08:00 PM',
+                      style: TextStyle(fontSize: 14, color: Color(0xFF2D2D2D)),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ]),
               const SizedBox(height: 24),
-              _buildSection(
-                'SECURITY & DATA',
-                [
-                  _buildSecurityItem(
-                    icon: Icons.lock,
-                    iconColor: const Color(0xFF81C784),
-                    title: 'App Lock',
-                    trailing: _buildSwitch(false),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSecurityItem(
-                    icon: Icons.cloud_upload,
-                    iconColor: const Color(0xFFFFB74D),
-                    title: 'Export My Data',
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      color: Colors.grey[400],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSecurityItem(
-                    icon: Icons.shield,
-                    iconColor: Colors.grey[600]!,
-                    title: 'Privacy Policy',
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      color: Colors.grey[400],
-                    ),
-                  ),
-                ],
-              ),
+              _buildSection('SECURITY & DATA', [
+                _buildSecurityItem(
+                  icon: Icons.lock,
+                  iconColor: const Color(0xFF81C784),
+                  title: 'App Lock',
+                  trailing: _buildSwitch(false),
+                ),
+                const SizedBox(height: 12),
+                _buildSecurityItem(
+                  icon: Icons.cloud_upload,
+                  iconColor: const Color(0xFFFFB74D),
+                  title: 'Export My Data',
+                  trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
+                ),
+                const SizedBox(height: 12),
+                _buildSecurityItem(
+                  icon: Icons.shield,
+                  iconColor: Colors.grey[600]!,
+                  title: 'Privacy Policy',
+                  trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
+                ),
+              ]),
               const SizedBox(height: 40),
               GestureDetector(
                 onTap: () {
@@ -233,10 +231,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 'MoodJar v2.4.0 (Build 392)',
-                style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.grey[400], fontSize: 12),
               ),
               const SizedBox(height: 32),
             ],
