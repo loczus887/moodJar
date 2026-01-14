@@ -491,6 +491,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           else if (moodAiQuote != null)
                             Text(
                               moodAiQuote!,
+                              textAlign: TextAlign.justify,
                               style: TextStyle(
                                 fontSize: 14,
                                 fontStyle: FontStyle.italic,
@@ -858,7 +859,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         else if (_dailyAiQuote != null)
                           Text(
                             _dailyAiQuote!,
-                            textAlign: TextAlign.center,
+                            textAlign: TextAlign.justify,
                             style: TextStyle(
                               fontSize: 14,
                               fontStyle: FontStyle.italic,
