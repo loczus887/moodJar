@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:local_auth/local_auth.dart';
 import '../bloc/auth_bloc/auth_bloc.dart';
 import '../bloc/theme_cubit/theme_cubit.dart';
 
@@ -14,6 +15,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _dailyReminder = true;
   bool _appLock = false;
+  final LocalAuthentication auth = LocalAuthentication();
 
   @override
   void initState() {
@@ -32,6 +34,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _saveSetting(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
+  }
+
+  Future<void> _toggleAppLock(bool value) async {
+    final bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
+    final bool canAuthenticate =
+        canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+
+    if (!canAuthenticate) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Biometric authentication not available on this device.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    if (mounted) {
+      final bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(value ? 'Enable App Lock' : 'Disable App Lock'),
+            content: Text(
+              value
+                  ? 'Are you sure you want to enable App Lock? You will need to authenticate to open the app.'
+                  : 'Are you sure you want to disable App Lock?',
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+              ),
+              TextButton(
+                child: const Text('Confirm'),
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirm == true) {
+        try {
+          final bool didAuthenticate = await auth.authenticate(
+            localizedReason: 'Please authenticate to change App Lock settings',
+            options: const AuthenticationOptions(biometricOnly: false),
+          );
+
+          if (didAuthenticate) {
+            setState(() {
+              _appLock = value;
+            });
+            _saveSetting('app_lock', value);
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Authentication failed: $e')),
+            );
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -221,10 +292,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   iconColor: const Color(0xFF81C784),
                   title: 'App Lock',
                   trailing: _buildSwitch(context, _appLock, (val) {
-                    setState(() {
-                      _appLock = val;
-                    });
-                    _saveSetting('app_lock', val);
+                    _toggleAppLock(val);
                   }),
                 ),
                 const SizedBox(height: 12),

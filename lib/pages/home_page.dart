@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
 import 'profile_screen.dart';
 import 'log_mood.dart';
 import '../widgets/custom_navigation_bar.dart';
@@ -12,6 +13,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  final LocalAuthentication auth = LocalAuthentication();
 
   void _onItemTapped(int index) {
     if (index == 4) {
@@ -31,6 +33,54 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  Future<void> _testFingerprint() async {
+    try {
+      final bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
+      final bool canAuthenticate =
+          canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+
+      if (!canAuthenticate) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Biometric authentication not available on this device.',
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      final bool didAuthenticate = await auth.authenticate(
+        localizedReason: 'Please authenticate to test security',
+        options: const AuthenticationOptions(
+          biometricOnly: false,
+          stickyAuth: true,
+        ),
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              didAuthenticate
+                  ? 'Authentication successful!'
+                  : 'Authentication failed.',
+            ),
+            backgroundColor: didAuthenticate ? Colors.green : Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
   }
 
   @override
@@ -145,6 +195,29 @@ class _HomeScreenState extends State<HomeScreen> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    GestureDetector(
+                      onTap: _testFingerprint,
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.fingerprint,
+                            size: 40,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Test fingerprint security',
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.grey[400]
+                                  : Colors.grey[600],
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
