@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:csv/csv.dart';
+import 'dart:io';
 import '../bloc/auth_bloc/auth_bloc.dart';
 import '../bloc/theme_cubit/theme_cubit.dart';
 
@@ -15,6 +20,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _dailyReminder = true;
   bool _appLock = false;
+  bool _isExporting = false;
   final LocalAuthentication auth = LocalAuthentication();
 
   @override
@@ -45,7 +51,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Biometric authentication not available on this device.'),
+            content: Text(
+              'Biometric authentication not available on this device.',
+            ),
           ),
         );
       }
@@ -105,13 +113,97 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _exportData(String userId) async {
+    setState(() {
+      _isExporting = true;
+    });
+
+    try {
+      // 1. Fetch data from Firestore
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('mood_logs')
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('No data to export.')));
+        }
+        setState(() {
+          _isExporting = false;
+        });
+        return;
+      }
+
+      // 2. Convert to CSV format
+      List<List<dynamic>> rows = [];
+      // Header row
+      rows.add([
+        "Date",
+        "Time",
+        "Mood Label",
+        "Mood Value",
+        "Note",
+        "Timestamp (ISO)",
+      ]);
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        final timestamp = data['timestamp'] as Timestamp?;
+        final date = timestamp?.toDate() ?? DateTime.now();
+
+        rows.add([
+          data['date_string'] ?? '',
+          "${date.hour}:${date.minute.toString().padLeft(2, '0')}",
+          data['mood_label'] ?? '',
+          data['mood_value'] ?? '',
+          data['note'] ?? '',
+          date.toIso8601String(),
+        ]);
+      }
+
+      String csvData = const ListToCsvConverter().convert(rows);
+
+      // 3. Save to temporary file
+      final directory = await getTemporaryDirectory();
+      final path = "${directory.path}/mood_jar_export.csv";
+      final file = File(path);
+      await file.writeAsString(csvData);
+
+      // 4. Share the file
+      if (mounted) {
+        await Share.shareXFiles([
+          XFile(path),
+        ], text: 'Here is my Mood Jar data export.');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isExporting = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
     String userEmail = 'Guest';
+    String userId = '';
 
     if (authState is Authenticated) {
       userEmail = authState.user.email ?? 'Anonymous';
+      userId = authState.user.uid;
     }
 
     final theme = Theme.of(context);
@@ -296,14 +388,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }),
                 ),
                 const SizedBox(height: 12),
-                _buildSecurityItem(
-                  context,
-                  icon: Icons.cloud_upload,
-                  iconColor: const Color(0xFFFFB74D),
-                  title: 'Export My Data',
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    color: isDark ? Colors.grey[500] : Colors.grey[400],
+                GestureDetector(
+                  onTap: () {
+                    if (userId.isNotEmpty && !_isExporting) {
+                      _exportData(userId);
+                    }
+                  },
+                  child: _buildSecurityItem(
+                    context,
+                    icon: Icons.cloud_upload,
+                    iconColor: const Color(0xFFFFB74D),
+                    title: 'Export My Data',
+                    trailing: _isExporting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            Icons.chevron_right,
+                            color: isDark ? Colors.grey[500] : Colors.grey[400],
+                          ),
                   ),
                 ),
                 const SizedBox(height: 12),
