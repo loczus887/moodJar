@@ -3,9 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/gemini_models.dart';
 
 class GeminiRepository {
-  // Default URL for local development (Android Emulator uses 10.0.2.2 for localhost)
-  // If running on a real device, replace with your machine's local IP address
-  static const String _baseUrl = 'http://192.168.1.72:3000';
+  static const String _baseUrl = 'http://localhost:3000';
 
   final String baseUrl;
   final http.Client _client;

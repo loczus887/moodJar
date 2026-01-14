@@ -39,11 +39,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
   bool _isGeneratingDaily = false;
   String? _dailyAiQuote;
   final GeminiRepository _geminiRepository = GeminiRepository();
+  bool _isApiAvailable = false;
 
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
+    _checkApiAvailability();
+  }
+
+  Future<void> _checkApiAvailability() async {
+    final isHealthy = await _geminiRepository.checkHealth();
+    if (mounted) {
+      setState(() {
+        _isApiAvailable = isHealthy;
+      });
+    }
   }
 
   // --- FUNCTION FOR DAILY AI ---
@@ -55,7 +66,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       _dailyAiQuote = null;
     });
 
-    // Check if API is accessible
+    // Double check health just in case connection dropped
     final isHealthy = await _geminiRepository.checkHealth();
     if (!isHealthy) {
       if (mounted) {
@@ -63,6 +74,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           _isGeneratingDaily = false;
           _dailyAiQuote =
               "AI Service is currently unavailable. Please try again later.";
+          _isApiAvailable = false; // Update state to hide UI next time
         });
       }
       return;
@@ -213,6 +225,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   isGeneratingMoodAi = false;
                   moodAiQuote = "AI Service unavailable.";
                 });
+                // Also update parent state to reflect unavailability
+                if (mounted) {
+                  setState(() {
+                    _isApiAvailable = false;
+                  });
+                }
                 return;
               }
 
@@ -350,113 +368,116 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   const SizedBox(height: 20),
 
                   // --- NEW SECTION: AI MOOD INSIGHT ---
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      // Subtle gradient to differentiate AI section
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.purple.withOpacity(0.05),
-                          Colors.blue.withOpacity(0.05),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.purple.withOpacity(0.1)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.auto_awesome,
-                                  size: 16,
-                                  color: Colors.purple[300],
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  "AI Insight",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.purple[300],
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            // The Button to activate
-                            if (moodAiQuote == null && !isGeneratingMoodAi)
-                              InkWell(
-                                onTap: generateMoodQuote,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _isDarkMode
-                                        ? Colors.purple.withOpacity(0.2)
-                                        : Colors.purple[50],
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: Colors.purple[100]!,
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    "Generate",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.purple,
-                                    ),
-                                  ),
-                                ),
-                              ),
+                  if (_isApiAvailable)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        // Subtle gradient to differentiate AI section
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.purple.withOpacity(0.05),
+                            Colors.blue.withOpacity(0.05),
                           ],
                         ),
-                        const SizedBox(height: 12),
-
-                        // Logic: If loading -> Bar; If text -> Text; Else -> Instruction
-                        if (isGeneratingMoodAi)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            child: LinearProgressIndicator(
-                              backgroundColor: _isDarkMode
-                                  ? Colors.purple.withOpacity(0.2)
-                                  : Colors.purple[50],
-                              color: Colors.purple[300],
-                              minHeight: 4,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          )
-                        else if (moodAiQuote != null)
-                          Text(
-                            moodAiQuote!,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontStyle: FontStyle.italic,
-                              color: _isDarkMode
-                                  ? Colors.grey[300]
-                                  : Colors.grey[800],
-                            ),
-                          )
-                        else
-                          Text(
-                            "Tap generate to get an inspiring quote for this specific emotion.",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: _isDarkMode
-                                  ? Colors.grey[500]
-                                  : Colors.grey[400],
-                            ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.purple.withOpacity(0.1),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.auto_awesome,
+                                    size: 16,
+                                    color: Colors.purple[300],
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "AI Insight",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.purple[300],
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // The Button to activate
+                              if (moodAiQuote == null && !isGeneratingMoodAi)
+                                InkWell(
+                                  onTap: generateMoodQuote,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _isDarkMode
+                                          ? Colors.purple.withOpacity(0.2)
+                                          : Colors.purple[50],
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.purple[100]!,
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      "Generate",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.purple,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                      ],
+                          const SizedBox(height: 12),
+
+                          // Logic: If loading -> Bar; If text -> Text; Else -> Instruction
+                          if (isGeneratingMoodAi)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: LinearProgressIndicator(
+                                backgroundColor: _isDarkMode
+                                    ? Colors.purple.withOpacity(0.2)
+                                    : Colors.purple[50],
+                                color: Colors.purple[300],
+                                minHeight: 4,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            )
+                          else if (moodAiQuote != null)
+                            Text(
+                              moodAiQuote!,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontStyle: FontStyle.italic,
+                                color: _isDarkMode
+                                    ? Colors.grey[300]
+                                    : Colors.grey[800],
+                              ),
+                            )
+                          else
+                            Text(
+                              "Tap generate to get an inspiring quote for this specific emotion.",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: _isDarkMode
+                                    ? Colors.grey[500]
+                                    : Colors.grey[400],
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
 
                   const SizedBox(height: 30),
                 ],
@@ -746,8 +767,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 const SizedBox(height: 24),
 
                 // 5. --- NEW SECTION: DAILY AI WISDOM (DAILY SUMMARY) ---
-                // Only appears if there are moods logged for this day
-                if (moodsForSelectedDay.isNotEmpty)
+                // Only appears if there are moods logged for this day AND API is available
+                if (moodsForSelectedDay.isNotEmpty && _isApiAvailable)
                   Container(
                     margin: const EdgeInsets.symmetric(
                       horizontal: 20,
