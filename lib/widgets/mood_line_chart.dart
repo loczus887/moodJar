@@ -6,11 +6,13 @@ class MoodBarChart extends StatelessWidget {
   final String userId;
   const MoodBarChart({super.key, required this.userId});
 
-
-  
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.grey[400] : Colors.grey;
+    final gridColor = isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.1);
+
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('users')
@@ -36,7 +38,7 @@ class MoodBarChart extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: cardColor,
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))
@@ -68,7 +70,7 @@ class MoodBarChart extends StatelessWidget {
                     showTitles: true,
                     getTitlesWidget: (value, meta) {
                       const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-                      return Text(days[value.toInt()], style: const TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold));
+                      return Text(days[value.toInt()], style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.bold));
                     },
                   ),
                 ),
@@ -90,7 +92,7 @@ class MoodBarChart extends StatelessWidget {
                       backDrawRodData: BackgroundBarChartRodData(
                         show: true,
                         toY: 10,
-                        color: Colors.grey.withOpacity(0.1),
+                        color: gridColor,
                       ),
                     ),
                   ],
