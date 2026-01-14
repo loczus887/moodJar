@@ -37,8 +37,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final textColor = theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF2D2D2D));
-    final iconColor = theme.iconTheme.color ?? (isDark ? Colors.white : const Color(0xFF2D2D2D));
+    final textColor =
+        theme.textTheme.bodyLarge?.color ??
+        (isDark ? Colors.white : const Color(0xFF2D2D2D));
+    final iconColor =
+        theme.iconTheme.color ??
+        (isDark ? Colors.white : const Color(0xFF2D2D2D));
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -49,10 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icon(Icons.arrow_back, color: iconColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Settings',
-          style: theme.appBarTheme.titleTextStyle,
-        ),
+        title: Text('Settings', style: theme.appBarTheme.titleTextStyle),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -107,7 +108,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFB39DDB),
                               shape: BoxShape.circle,
-                              border: Border.all(color: theme.cardColor, width: 2),
+                              border: Border.all(
+                                color: theme.cardColor,
+                                width: 2,
+                              ),
                             ),
                             child: const Icon(
                               Icons.edit,
@@ -136,7 +140,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             userEmail,
                             style: TextStyle(
                               fontSize: 14,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              color: isDark
+                                  ? Colors.grey[400]
+                                  : Colors.grey[600],
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -144,18 +150,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             'Pro Member',
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDark ? Colors.grey[500] : Colors.grey[400],
+                              color: isDark
+                                  ? Colors.grey[500]
+                                  : Colors.grey[400],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Icon(Icons.chevron_right, color: isDark ? Colors.grey[500] : Colors.grey[400]),
+                    Icon(
+                      Icons.chevron_right,
+                      color: isDark ? Colors.grey[500] : Colors.grey[400],
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 32),
-              _buildSection(context, 'APPEARANCE', [_buildAppearanceToggle(context)]),
+              _buildSection(context, 'APPEARANCE', [
+                _buildAppearanceToggle(context),
+              ]),
               const SizedBox(height: 24),
               _buildSection(context, 'NOTIFICATIONS', [
                 _buildNotificationItem(
@@ -210,7 +223,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: Icons.cloud_upload,
                   iconColor: const Color(0xFFFFB74D),
                   title: 'Export My Data',
-                  trailing: Icon(Icons.chevron_right, color: isDark ? Colors.grey[500] : Colors.grey[400]),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: isDark ? Colors.grey[500] : Colors.grey[400],
+                  ),
                 ),
                 const SizedBox(height: 12),
                 _buildSecurityItem(
@@ -218,7 +234,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: Icons.shield,
                   iconColor: isDark ? Colors.grey[400]! : Colors.grey[600]!,
                   title: 'Privacy Policy',
-                  trailing: Icon(Icons.chevron_right, color: isDark ? Colors.grey[500] : Colors.grey[400]),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: isDark ? Colors.grey[500] : Colors.grey[400],
+                  ),
                 ),
               ]),
               const SizedBox(height: 40),
@@ -248,21 +267,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 16),
               Text(
                 'MoodJar v2.4.0 (Build 392)',
-                style: TextStyle(color: isDark ? Colors.grey[600] : Colors.grey[400], fontSize: 12),
+                style: TextStyle(
+                  color: isDark ? Colors.grey[600] : Colors.grey[400],
+                  fontSize: 12,
+                ),
               ),
               const SizedBox(height: 32),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: CustomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-      ),
     );
   }
 
-  Widget _buildSection(BuildContext context, String title, List<Widget> children) {
+  Widget _buildSection(
+    BuildContext context,
+    String title,
+    List<Widget> children,
+  ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return Column(
@@ -388,7 +410,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final textColor = theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF2D2D2D));
+    final textColor =
+        theme.textTheme.bodyLarge?.color ??
+        (isDark ? Colors.white : const Color(0xFF2D2D2D));
 
     return Row(
       children: [
@@ -425,7 +449,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final textColor = theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF2D2D2D));
+    final textColor =
+        theme.textTheme.bodyLarge?.color ??
+        (isDark ? Colors.white : const Color(0xFF2D2D2D));
 
     return Row(
       children: [
@@ -453,10 +479,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSwitch(BuildContext context, bool value, Function(bool) onChanged) {
+  Widget _buildSwitch(
+    BuildContext context,
+    bool value,
+    Function(bool) onChanged,
+  ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: AnimatedContainer(
@@ -465,9 +495,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         height: 30,
         padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
-          color: value 
-              ? const Color(0xFFB39DDB) 
-              : (isDark ? Colors.grey[700] : Colors.grey[300]),
+          color: value
+              ? const Color(0xFFB39DDB)
+              : (isDark ? const Color(0xFF383838) : Colors.grey[300]),
           borderRadius: BorderRadius.circular(20),
         ),
         child: AnimatedAlign(
@@ -477,7 +507,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             width: 26,
             height: 26,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark && !value ? const Color(0xFFB0B0B0) : Colors.white,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
