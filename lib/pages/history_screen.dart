@@ -487,7 +487,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 if (moodsForSelectedDay.isEmpty)
                    Padding(
                     padding: const EdgeInsets.all(20.0),
-                    child: Text("No moods logged for this day.", style: TextStyle(color: Colors.grey[400])),
+                    child: Text("No moods logged for this day. O _ O", style: TextStyle(color: Colors.grey[400])),
                   )
                 else
                   SizedBox(
