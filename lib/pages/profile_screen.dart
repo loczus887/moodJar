@@ -195,6 +195,125 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _showPrivacyPolicy(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+        final textColor = isDark ? Colors.white : const Color(0xFF2D2D2D);
+        final backgroundColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey[700] : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Privacy Policy',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Last Updated: October 2023',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _buildPolicySection(
+                        '1. Introduction',
+                        'Welcome to Mood Jar. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our application and tell you about your privacy rights and how the law protects you.',
+                        textColor,
+                      ),
+                      _buildPolicySection(
+                        '2. Data We Collect',
+                        'We may collect, use, store and transfer different kinds of personal data about you which we have grouped together follows:\n\n• Identity Data: includes first name, last name, username or similar identifier.\n• Contact Data: includes email address.\n• Usage Data: includes information about how you use our app, such as mood logs, notes, and timestamps.',
+                        textColor,
+                      ),
+                      _buildPolicySection(
+                        '3. How We Use Your Data',
+                        'We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:\n\n• To provide the mood tracking service.\n• To generate AI-powered insights (processed securely).\n• To manage your account and authentication.',
+                        textColor,
+                      ),
+                      _buildPolicySection(
+                        '4. Data Security',
+                        'We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used or accessed in an unauthorized way, altered or disclosed. In addition, we limit access to your personal data to those employees, agents, contractors and other third parties who have a business need to know.',
+                        textColor,
+                      ),
+                      _buildPolicySection(
+                        '5. Your Legal Rights',
+                        'Under certain circumstances, you have rights under data protection laws in relation to your personal data, including the right to request access, correction, erasure, restriction, transfer, to object to processing, to portability of data and (where the lawful ground of processing is consent) to withdraw consent.',
+                        textColor,
+                      ),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPolicySection(String title, String content, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            content,
+            style: TextStyle(
+              fontSize: 14,
+              color: textColor.withOpacity(0.8),
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
@@ -412,14 +531,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildSecurityItem(
-                  context,
-                  icon: Icons.shield,
-                  iconColor: isDark ? Colors.grey[400]! : Colors.grey[600]!,
-                  title: 'Privacy Policy',
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    color: isDark ? Colors.grey[500] : Colors.grey[400],
+                GestureDetector(
+                  onTap: () => _showPrivacyPolicy(context),
+                  child: _buildSecurityItem(
+                    context,
+                    icon: Icons.shield,
+                    iconColor: isDark ? Colors.grey[400]! : Colors.grey[600]!,
+                    title: 'Privacy Policy',
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: isDark ? Colors.grey[500] : Colors.grey[400],
+                    ),
                   ),
                 ),
               ]),
