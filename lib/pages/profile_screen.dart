@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../bloc/auth_bloc/auth_bloc.dart';
 import '../bloc/theme_cubit/theme_cubit.dart';
 import '../widgets/custom_navigation_bar.dart';
@@ -15,6 +16,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _selectedIndex = 4; // Settings index
   bool _dailyReminder = true;
   bool _appLock = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _dailyReminder = prefs.getBool('daily_reminder') ?? true;
+      _appLock = prefs.getBool('app_lock') ?? false;
+    });
+  }
+
+  Future<void> _saveSetting(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -180,6 +200,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     setState(() {
                       _dailyReminder = val;
                     });
+                    _saveSetting('daily_reminder', val);
                   }),
                 ),
                 const SizedBox(height: 12),
@@ -215,6 +236,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     setState(() {
                       _appLock = val;
                     });
+                    _saveSetting('app_lock', val);
                   }),
                 ),
                 const SizedBox(height: 12),
@@ -276,6 +298,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: CustomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
       ),
     );
   }
