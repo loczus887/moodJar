@@ -1,0 +1,61 @@
+{
+  "options": {
+    "daily_text": true,
+    "mood_sentences": true,
+    "memories": true
+  },
+  "memories": [
+    {
+      "info": "Living in parents' basement in Ohio.",
+      "importance": 40,
+      "date_created": "2023-01-10"
+    },
+    {
+      "info": "Relationship status: Single. Recently broke up with Jessica.",
+      "importance": 70,
+      "date_created": "2023-02-15"
+    },
+    {
+      "info": "Terrified of dogs due to a childhood incident.",
+      "importance": 85,
+      "date_created": "2022-11-20"
+    },
+    {
+      "info": "Goal: Wants to work as a graphic designer.",
+      "importance": 60,
+      "date_created": "2023-01-01"
+    }
+  ],
+  "diaries": [
+    {
+      "id": "entry_001",
+      "date": "2023-10-01T14:00:00Z",
+      "emotion": "Exhausted",
+      "diary": "Finally made it to Chicago! The apartment on 42nd Street is smaller than I thought, but it's mine. The moving truck broke down twice. I'm sleeping on the floor tonight."
+    },
+    {
+      "id": "entry_002",
+      "date": "2023-10-03T09:30:00Z",
+      "emotion": "Nervous",
+      "diary": "First day at the new design agency, 'Pixel & Ink'. My boss, Karen, seems strict. I felt like an imposter during the morning meeting."
+    },
+    {
+      "id": "entry_003",
+      "date": "2023-10-10T19:00:00Z",
+      "emotion": "Surprised",
+      "diary": "Met a neighbor, Alex, in the elevator. He has a golden retriever named 'Buster'. I almost panicked, but the dog just licked my hand. Alex asked if I wanted to grab coffee sometime."
+    },
+    {
+      "id": "entry_004",
+      "date": "2023-10-14T22:00:00Z",
+      "emotion": "Happy",
+      "diary": "Coffee with Alex turned into dinner. We talked for 4 hours. I forgot to mention, I actually petted Buster today! I think my fear is fading."
+    },
+    {
+      "id": "entry_005",
+      "date": "2023-10-15T08:00:00Z",
+      "emotion": "Determined",
+      "diary": "Woke up feeling ready. Karen approved my logo drafts yesterday! And I have a second date with Alex on Friday. Life in Chicago is starting to feel real."
+    }
+  ]
+}

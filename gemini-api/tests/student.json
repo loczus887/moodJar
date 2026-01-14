@@ -1,0 +1,38 @@
+{
+  "options": {
+    "daily_text": true,
+    "mood_sentences": true,
+    "memories": true
+  },
+  "memories": [
+    {
+      "info": "Looking for a 1-bedroom apartment in downtown.",
+      "importance": 70,
+      "date_created": "2023-09-01"
+    },
+    {
+      "info": "Allergic to peanuts.",
+      "importance": 100,
+      "date_created": "2020-01-01"
+    },
+    {
+      "info": "Anxious about the upcoming math exam.",
+      "importance": 60,
+      "date_created": "2023-10-10"
+    }
+  ],
+  "diaries": [
+    {
+      "id": "entry_201",
+      "date": "2023-10-15T10:00:00Z",
+      "emotion": "Relieved",
+      "diary": "I passed the math exam! I got a B+. Honestly, I thought I would fail. Also, I signed the lease for the apartment on Main St. Finally done with house hunting."
+    },
+    {
+      "id": "entry_202",
+      "date": "2023-10-16T18:00:00Z",
+      "emotion": "Happy",
+      "diary": "Celebrated the new apartment with pizza. I made sure to order peanut-free crust."
+    }
+  ]
+}
