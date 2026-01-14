@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import '../bloc/auth_bloc/auth_bloc.dart';
+import '../data/models/gemini_models.dart';
+import '../data/repositories/gemini_repository.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -36,6 +38,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // --- STATE VARIABLES FOR DAILY SUMMARY AI ---
   bool _isGeneratingDaily = false;
   String? _dailyAiQuote;
+  final GeminiRepository _geminiRepository = GeminiRepository();
 
   @override
   void initState() {
@@ -43,21 +46,59 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _selectedDay = _focusedDay;
   }
 
-  // --- MOCK FUNCTION (SIMULATION) FOR DAILY AI ---
-  // Your colleague will replace this with the real LLM API call
-  Future<void> _generateDailyInsight() async {
+  // --- FUNCTION FOR DAILY AI ---
+  Future<void> _generateDailyInsight(
+    List<QueryDocumentSnapshot> dailyMoods,
+  ) async {
     setState(() {
       _isGeneratingDaily = true;
+      _dailyAiQuote = null;
     });
 
-    // Simulates network delay (Loading)
-    await Future.delayed(const Duration(seconds: 2));
+    // Check if API is accessible
+    final isHealthy = await _geminiRepository.checkHealth();
+    if (!isHealthy) {
+      if (mounted) {
+        setState(() {
+          _isGeneratingDaily = false;
+          _dailyAiQuote =
+              "AI Service is currently unavailable. Please try again later.";
+        });
+      }
+      return;
+    }
 
-    setState(() {
-      _isGeneratingDaily = false;
-      _dailyAiQuote =
-          "Based on your mix of happiness and tiredness today, remember that rest is part of the journey. Recharge so you can shine brighter tomorrow!";
-    });
+    // Prepare data for API
+    List<DiaryEntry> diaries = dailyMoods.map((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      return DiaryEntry(
+        id: doc.id,
+        content: "Mood: ${data['mood_label']}. Note: ${data['note'] ?? ''}",
+        date: data['date_string'] ?? DateTime.now().toIso8601String(),
+      );
+    }).toList();
+
+    // Call API
+    final response = await _geminiRepository.analyze(
+      diaries: diaries,
+      options: const AnalysisOptions(
+        dailyText: true,
+        moodSentences: false, // We only want the daily summary here
+        memories: false,
+      ),
+    );
+
+    if (mounted) {
+      setState(() {
+        _isGeneratingDaily = false;
+        if (response.success && response.data?.dailyText != null) {
+          _dailyAiQuote = response.data!.dailyText;
+        } else {
+          _dailyAiQuote =
+              "Could not generate insight. ${response.error?.message ?? ''}";
+        }
+      });
+    }
   }
 
   // Color Map
@@ -147,6 +188,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     String note,
     String time,
     Color color,
+    String docId, // Added docId to identify specific entry
   ) {
     showModalBottomSheet(
       context: context,
@@ -160,14 +202,50 @@ class _HistoryScreenState extends State<HistoryScreen> {
         // StatefulBuilder allows updating UI inside Bottom Sheet without closing
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setSheetState) {
-            // Mock function for individual AI
+            // Function for individual AI
             Future<void> generateMoodQuote() async {
               setSheetState(() => isGeneratingMoodAi = true);
-              await Future.delayed(const Duration(seconds: 2)); // Simulates LLM
+
+              // Check health
+              final isHealthy = await _geminiRepository.checkHealth();
+              if (!isHealthy) {
+                setSheetState(() {
+                  isGeneratingMoodAi = false;
+                  moodAiQuote = "AI Service unavailable.";
+                });
+                return;
+              }
+
+              // Prepare single entry
+              final entry = DiaryEntry(
+                id: docId,
+                content: "Mood: $label. Note: $note",
+                date: DateTime.now()
+                    .toIso8601String(), // Date doesn't matter much for single insight
+              );
+
+              // Call API
+              final response = await _geminiRepository.analyze(
+                diaries: [entry],
+                options: const AnalysisOptions(
+                  dailyText: false,
+                  moodSentences: true, // We want specific mood insight
+                  memories: false,
+                ),
+              );
+
               setSheetState(() {
                 isGeneratingMoodAi = false;
-                moodAiQuote =
-                    "Feeling $label is a valid emotion. Take a moment to breathe and acknowledge it without judgment. This is an AI generated placeholder.";
+                if (response.success && response.data?.moodSentences != null) {
+                  // The API returns a map keyed by ID
+                  moodAiQuote = response.data!.moodSentences![docId];
+                  if (moodAiQuote == null) {
+                    moodAiQuote = "No specific insight generated.";
+                  }
+                } else {
+                  moodAiQuote =
+                      "Error: ${response.error?.message ?? 'Unknown'}";
+                }
               });
             }
 
@@ -642,9 +720,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: moodsForSelectedDay.length,
                       itemBuilder: (context, index) {
-                        final data =
-                            moodsForSelectedDay[index].data()
-                                as Map<String, dynamic>;
+                        final doc = moodsForSelectedDay[index];
+                        final data = doc.data() as Map<String, dynamic>;
 
                         String timeString = "--:--";
                         if (data['timestamp'] != null) {
@@ -656,7 +733,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         String note = data['note'] ?? '';
                         String label = data['mood_label'] ?? 'Mood';
 
-                        return _buildDailyMoodCard(label, timeString, note);
+                        return _buildDailyMoodCard(
+                          label,
+                          timeString,
+                          note,
+                          doc.id,
+                        );
                       },
                     ),
                   ),
@@ -731,7 +813,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           )
                         else
                           ElevatedButton(
-                            onPressed: _generateDailyInsight,
+                            onPressed: () =>
+                                _generateDailyInsight(moodsForSelectedDay),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: _textMain,
                               foregroundColor: _isDarkMode
@@ -836,13 +919,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   // Card with tap gesture
-  Widget _buildDailyMoodCard(String label, String time, String note) {
+  Widget _buildDailyMoodCard(
+    String label,
+    String time,
+    String note,
+    String docId,
+  ) {
     Color cardColor = _getColorForMood(label).withOpacity(0.3);
     IconData icon = _getIconForMood(label);
 
     return GestureDetector(
-      onTap: () =>
-          _showMoodDetails(context, label, note, time, _getColorForMood(label)),
+      onTap: () => _showMoodDetails(
+        context,
+        label,
+        note,
+        time,
+        _getColorForMood(label),
+        docId,
+      ),
       child: Container(
         width: 160,
         margin: const EdgeInsets.only(right: 12),
