@@ -21,19 +21,54 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
 
   // Data list to facilitate UI construction and Firebase submission
   final List<Map<String, dynamic>> _moods = [
-    {'label': 'Happy', 'emoji': '😊', 'color': Color(0xFFFFF4E0), 'value': 5},
-    {'label': 'Sad', 'emoji': '😢', 'color': Color(0xFFE0F2FF), 'value': 1},
-    {'label': 'Tired', 'emoji': '😴', 'color': Color(0xFFF0E6FF), 'value': 2},
-    {'label': 'Anxious', 'emoji': '😰', 'color': Color(0xFFF0F0F5), 'value': 3},
-    {'label': 'Excited', 'emoji': '🤩', 'color': Color(0xFFFFFCE0), 'value': 4},
+    {
+      'label': 'Happy',
+      'emoji': '😊',
+      'color': Colors.orangeAccent.withValues(alpha: 0.3),
+      'value': 5,
+    },
+    {
+      'label': 'Sad',
+      'emoji': '😢',
+      'color': Colors.blueAccent.withValues(alpha: 0.3),
+      'value': 1,
+    },
+    {
+      'label': 'Tired',
+      'emoji': '😴',
+      'color': Colors.deepPurpleAccent.withValues(alpha: 0.3),
+      'value': 2,
+    },
+    {
+      'label': 'Anxious',
+      'emoji': '😰',
+      'color': Colors.tealAccent.withValues(alpha: 0.3),
+      'value': 3,
+    },
+    {
+      'label': 'Excited',
+      'emoji': '🤩',
+      'color': Colors.amberAccent.withValues(alpha: 0.3),
+      'value': 4,
+    },
     {
       'label': 'Grateful',
       'emoji': '🥰',
-      'color': Color(0xFFFFE0E0),
+      'color': Colors.pinkAccent.withValues(alpha: 0.3),
       'value': 6,
     },
-    {'label': 'Proud', 'emoji': '😁', 'color': Color(0xFFE0FFF4), 'value': 7},
-    {'label': 'Angry', 'emoji': '😡', 'color': Color(0xFFFFE0E0), 'value': 8},
+    {
+      'label': 'Proud',
+      'emoji': '😁',
+      'color': Colors.greenAccent.withValues(alpha: 0.3),
+      'value': 7,
+    },
+    {
+      'label': 'Angry',
+      'emoji': '😡',
+      'color': Colors.redAccent.withValues(alpha: 0.3),
+      'value': 8,
+    },
   ];
 
   @override
@@ -195,8 +230,8 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
             onPressed: () => Navigator.pop(context),
             style: IconButton.styleFrom(
               backgroundColor: isDark
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.05),
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.05),
             ),
           ),
           Column(
@@ -265,8 +300,8 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
           boxShadow: [
             BoxShadow(
               color: isSelected
-                  ? _primaryColor.withOpacity(0.4)
-                  : Colors.black.withOpacity(0.05),
+                  ? _primaryColor.withValues(alpha: 0.4)
+                  : Colors.black.withValues(alpha: 0.05),
               blurRadius: isSelected ? 12 : 10,
               offset: const Offset(0, 4),
             ),
@@ -333,7 +368,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -359,7 +394,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
             style: TextStyle(color: textMain),
             decoration: InputDecoration(
               hintText: "I'm feeling this way because...",
-              hintStyle: TextStyle(color: textMuted.withOpacity(0.5)),
+              hintStyle: TextStyle(color: textMuted.withValues(alpha: 0.5)),
               border: InputBorder.none,
             ),
           ),
