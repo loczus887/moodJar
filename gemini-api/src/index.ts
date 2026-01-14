@@ -1,19 +1,16 @@
-import express, {Request, Response} from 'express';
+import express, {type Request, type Response} from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import {GoogleGenerativeAI} from '@google/generative-ai';
 
-// 1. Load environment variables
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// 2. Middleware
-app.use(express.json()); // To parse JSON bodies
-app.use(cors());         // To allow requests from other domains
+app.use(express.json());
+app.use(cors());
 
-// 3. Initialize Gemini Client
 const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
     console.error("Error: GEMINI_API_KEY is missing in .env file");
@@ -21,10 +18,15 @@ if (!apiKey) {
 }
 
 const genAI = new GoogleGenerativeAI(apiKey);
-// Using the 'gemini-1.5-flash' model for speed and efficiency
-const model = genAI.getGenerativeModel({model: "gemini-1.5-flash"});
+const model = genAI.getGenerativeModel({model: "gemini-2.5-flash"});
 
-// 4. Define the Chat Endpoint
+app.get("/health", (req: Request, res: Response) => {
+    res.setHeader('Content-Type', 'text/plain');
+    res.status(200);
+    res.send("OK");
+    res.end();
+})
+
 app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
     try {
         const {prompt} = req.body;
@@ -35,7 +37,7 @@ app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
 
         // Call Gemini API
         const result = await model.generateContent(prompt);
-        const response = await result.response;
+        const response = result.response;
         const text = response.text();
 
         // Send back the result
@@ -53,7 +55,6 @@ app.post('/api/chat', async (req: Request, res: Response): Promise<any> => {
     }
 });
 
-// 5. Start the Server
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
