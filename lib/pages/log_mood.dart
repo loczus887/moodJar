@@ -30,6 +30,9 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
     {'label': 'Tired', 'emoji': '😴', 'color': Color(0xFFF0E6FF), 'value': 2},
     {'label': 'Anxious', 'emoji': '😰', 'color': Color(0xFFF0F0F5), 'value': 3},
     {'label': 'Excited', 'emoji': '🤩', 'color': Color(0xFFFFFCE0), 'value': 4},
+    {'label': 'Grateful', 'emoji': '🥰', 'color': Color(0xFFFFE0E0), 'value': 6},
+    {'label': 'Proud', 'emoji': '😁', 'color': Color(0xFFE0FFF4), 'value': 7},
+    {'label': 'Angry', 'emoji': '😡', 'color': Color(0xFFFFE0E0), 'value': 8},
   ];
 
   @override
@@ -195,34 +198,30 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
     );
   }
 
+  // Nova Grelha com Scroll Horizontal
   Widget _buildMoodGrid() {
-    return Column(
-      children: [
-        // Row 1: Happy & Sad
-        Row(
-          children: [
-            Expanded(child: _buildMoodCard(0)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildMoodCard(1)),
-          ],
+    // SizedBox define a altura da área de scroll.
+    // 380px é suficiente para caber 2 linhas de cartões + espaços
+    return SizedBox(
+      height: 380, 
+      child: GridView.builder(
+        scrollDirection: Axis.horizontal, // Faz o scroll para a direita
+        padding: const EdgeInsets.symmetric(vertical: 10), // Espaço em cima e em baixo para a sombra não cortar
+        itemCount: _moods.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, // 2 Linhas
+          mainAxisSpacing: 16, // Espaço entre colunas (horizontal)
+          crossAxisSpacing: 16, // Espaço entre linhas (vertical)
+          childAspectRatio: 1.1, // Controla a "magreza" do cartão (Altura vs Largura)
         ),
-        const SizedBox(height: 16),
-        // Row 2: Tired & Anxious
-        Row(
-          children: [
-            Expanded(child: _buildMoodCard(2)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildMoodCard(3)),
-          ],
-        ),
-        const SizedBox(height: 16),
-        // Row 3: Excited (Full width)
-        _buildWideMoodCard(4),
-      ],
+        itemBuilder: (context, index) {
+          return _buildMoodCard(index);
+        },
+      ),
     );
   }
 
-  // Square Card (Happy, Sad, etc)
+  // O Design do Cartão (Simplificado para funcionar na grelha)
   Widget _buildMoodCard(int index) {
     final bool isSelected = _selectedMoodIndex == index;
     final mood = _moods[index];
@@ -231,7 +230,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
       onTap: () => setState(() => _selectedMoodIndex = index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: _surfaceColor,
           borderRadius: BorderRadius.circular(20),
@@ -248,103 +247,39 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
           ],
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              height: 80,
+              height: 60, // Ajustei o tamanho para caber bem na grelha horizontal
               width: double.infinity,
               decoration: BoxDecoration(
                 color: mood['color'],
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
-                // If you have images in assets use: Image.asset('assets/${mood['label']}.png')
-                child: Text(mood['emoji'], style: const TextStyle(fontSize: 40)),
+                child: Text(mood['emoji'], style: const TextStyle(fontSize: 32)),
               ),
             ),
-            const SizedBox(height: 12),
+            const Spacer(),
             Text(
               mood['label'],
-              style: TextStyle(color: _textMain, fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(color: _textMain, fontWeight: FontWeight.bold, fontSize: 14),
+              textAlign: TextAlign.center,
             ),
+            const SizedBox(height: 4),
             if (isSelected)
               Container(
-                margin: const EdgeInsets.only(top: 4),
                 padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(color: _primaryColor, shape: BoxShape.circle),
                 child: const Icon(Icons.check, size: 12, color: Colors.black),
               )
+            else
+              const SizedBox(height: 16) // Espaço vazio para manter alinhamento
           ],
         ),
       ),
     );
   }
-
-  // Wide Card (Excited)
-  Widget _buildWideMoodCard(int index) {
-    final bool isSelected = _selectedMoodIndex == index;
-    final mood = _moods[index];
-
-    return GestureDetector(
-      onTap: () => setState(() => _selectedMoodIndex = index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: _surfaceColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? _primaryColor : Colors.transparent,
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              height: 60,
-              width: 60,
-              decoration: BoxDecoration(
-                color: mood['color'],
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Center(
-                child: Text(mood['emoji'], style: const TextStyle(fontSize: 30)),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    mood['label'],
-                    style: TextStyle(color: _textMain, fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  Text(
-                    'High energy & motivated', // You can add subtitles to the _moods map if you want it dynamic
-                    style: TextStyle(color: _textMuted, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected)
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(color: _primaryColor, shape: BoxShape.circle),
-                child: const Icon(Icons.check, size: 14, color: Colors.black),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // Text Input
   Widget _buildJournalInput() {
     return Container(
