@@ -14,16 +14,26 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   // Base Colors
-  final Color _primaryColor = const Color(0xFFC7C8F0);
-  final Color _backgroundColor = const Color(0xFFFAFAF9);
-  final Color _surfaceColor = Colors.white;
-  final Color _textMain = const Color(0xFF101019);
+  bool get _isDarkMode => Theme.of(context).brightness == Brightness.dark;
+
+  Color get _primaryColor => const Color(0xFFC7C8F0);
+
+  Color get _backgroundColor =>
+      _isDarkMode ? const Color(0xFF121212) : const Color(0xFFFAFAF9);
+
+  Color get _surfaceColor =>
+      _isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
+
+  Color get _textMain => _isDarkMode ? Colors.white : const Color(0xFF101019);
+
+  Color get _textSecondary =>
+      _isDarkMode ? Colors.grey[400]! : Colors.grey[500]!;
 
   // Calendar Variables
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  // --- VARIÁVEIS DE ESTADO PARA O AI DO RESUMO DIÁRIO ---
+  // --- STATE VARIABLES FOR DAILY SUMMARY AI ---
   bool _isGeneratingDaily = false;
   String? _dailyAiQuote;
 
@@ -33,34 +43,44 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _selectedDay = _focusedDay;
   }
 
-  // --- FUNÇÃO MOCK (SIMULAÇÃO) PARA O AI DIÁRIO ---
-  // O seu colega substituirá isto pela chamada real à API do LLM
+  // --- MOCK FUNCTION (SIMULATION) FOR DAILY AI ---
+  // Your colleague will replace this with the real LLM API call
   Future<void> _generateDailyInsight() async {
     setState(() {
       _isGeneratingDaily = true;
     });
 
-    // Simula delay de rede (Loading)
+    // Simulates network delay (Loading)
     await Future.delayed(const Duration(seconds: 2));
 
     setState(() {
       _isGeneratingDaily = false;
-      _dailyAiQuote = "Based on your mix of happiness and tiredness today, remember that rest is part of the journey. Recharge so you can shine brighter tomorrow!";
+      _dailyAiQuote =
+          "Based on your mix of happiness and tiredness today, remember that rest is part of the journey. Recharge so you can shine brighter tomorrow!";
     });
   }
 
   // Color Map
   Color _getColorForMood(String label) {
     switch (label) {
-      case 'Happy': return Colors.orangeAccent;
-      case 'Sad': return Colors.lightBlueAccent;
-      case 'Tired': return Colors.purpleAccent;
-      case 'Anxious': return Colors.blueGrey;
-      case 'Excited': return Colors.yellow;
-      case 'Grateful': return Colors.pinkAccent;
-      case 'Proud': return Colors.tealAccent;
-      case 'Angry': return Colors.redAccent;
-      default: return _primaryColor;
+      case 'Happy':
+        return Colors.orangeAccent;
+      case 'Sad':
+        return Colors.lightBlueAccent;
+      case 'Tired':
+        return Colors.purpleAccent;
+      case 'Anxious':
+        return Colors.blueGrey;
+      case 'Excited':
+        return Colors.yellow;
+      case 'Grateful':
+        return Colors.pinkAccent;
+      case 'Proud':
+        return Colors.tealAccent;
+      case 'Angry':
+        return Colors.redAccent;
+      default:
+        return _primaryColor;
     }
   }
 
@@ -73,9 +93,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
     bool hasEvents = false,
   }) {
     Color bgColor = Colors.transparent;
-    
+
     if (hasEvents) {
-      bgColor = color.withOpacity(0.4); 
+      bgColor = color.withOpacity(0.4);
     } else if (isSelected || isToday) {
       bgColor = _primaryColor.withOpacity(0.3);
     }
@@ -88,19 +108,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.all(2), 
+      margin: const EdgeInsets.all(2),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: bgColor, 
+        color: bgColor,
         border: border,
       ),
       child: Text(
         text,
         style: TextStyle(
           color: _textMain,
-          fontWeight: (isSelected || isToday || hasEvents) ? FontWeight.bold : FontWeight.normal,
-          fontSize: 16, 
+          fontWeight: (isSelected || isToday || hasEvents)
+              ? FontWeight.bold
+              : FontWeight.normal,
+          fontSize: 16,
         ),
       ),
     );
@@ -111,59 +133,67 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Container(
       width: 5,
       height: 5,
-      decoration: const BoxDecoration(
-        color: Colors.black87,
+      decoration: BoxDecoration(
+        color: _isDarkMode ? Colors.white70 : Colors.black87,
         shape: BoxShape.circle,
       ),
     );
   }
 
-  // --- BOTTOM SHEET ATUALIZADO COM SECÇÃO DE AI ---
-  void _showMoodDetails(BuildContext context, String label, String note, String time, Color color) {
+  // --- UPDATED BOTTOM SHEET WITH AI SECTION ---
+  void _showMoodDetails(
+    BuildContext context,
+    String label,
+    String note,
+    String time,
+    Color color,
+  ) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      isScrollControlled: true, // Permite que a sheet cresça com o conteúdo
+      isScrollControlled: true, // Allows the sheet to grow with content
       builder: (context) {
-        // Variáveis locais para controlar o estado DENTRO do Bottom Sheet
+        // Local variables to control state INSIDE the Bottom Sheet
         bool isGeneratingMoodAi = false;
         String? moodAiQuote;
 
-        // StatefulBuilder permite atualizar a UI dentro do Bottom Sheet sem fechar
+        // StatefulBuilder allows updating UI inside Bottom Sheet without closing
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setSheetState) {
-            
-            // Função Mock para o AI individual
+            // Mock function for individual AI
             Future<void> generateMoodQuote() async {
               setSheetState(() => isGeneratingMoodAi = true);
-              await Future.delayed(const Duration(seconds: 2)); // Simula LLM
+              await Future.delayed(const Duration(seconds: 2)); // Simulates LLM
               setSheetState(() {
                 isGeneratingMoodAi = false;
-                moodAiQuote = "Feeling $label is a valid emotion. Take a moment to breathe and acknowledge it without judgment. This is an AI generated placeholder.";
+                moodAiQuote =
+                    "Feeling $label is a valid emotion. Take a moment to breathe and acknowledge it without judgment. This is an AI generated placeholder.";
               });
             }
 
             return Container(
               padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              decoration: BoxDecoration(
+                color: _surfaceColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(30),
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Pega de arrastar
+                  // Drag handle
                   Container(
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: _isDarkMode ? Colors.grey[700] : Colors.grey[300],
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
-                  // Ícone Grande e Título
+
+                  // Large Icon and Title
                   Row(
                     children: [
                       Container(
@@ -172,7 +202,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           color: color.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Icon(_getIconForMood(label), size: 32, color: Colors.black87),
+                        child: Icon(
+                          _getIconForMood(label),
+                          size: 32,
+                          color: _textMain,
+                        ),
                       ),
                       const SizedBox(width: 16),
                       Column(
@@ -180,11 +214,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         children: [
                           Text(
                             label,
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: _textMain,
+                            ),
                           ),
                           Text(
                             time,
-                            style: TextStyle(fontSize: 14, color: Colors.grey[500], fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: _textSecondary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
                       ),
@@ -193,8 +235,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   const SizedBox(height: 24),
                   const Divider(),
                   const SizedBox(height: 16),
-                  
-                  // Área da Descrição
+
+                  // Description Area
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -207,27 +249,39 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       children: [
                         Text(
                           "Description",
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[500], letterSpacing: 1),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: _textSecondary,
+                            letterSpacing: 1,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           note.isEmpty ? "No description provided." : note,
-                          style: const TextStyle(fontSize: 16, color: Colors.black87, height: 1.5),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: _textMain,
+                            height: 1.5,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
 
-                  // --- NOVA SECÇÃO: AI MOOD INSIGHT ---
+                  // --- NEW SECTION: AI MOOD INSIGHT ---
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      // Gradiente subtil para diferenciar a secção AI
+                      // Subtle gradient to differentiate AI section
                       gradient: LinearGradient(
-                        colors: [Colors.purple.withOpacity(0.05), Colors.blue.withOpacity(0.05)],
+                        colors: [
+                          Colors.purple.withOpacity(0.05),
+                          Colors.blue.withOpacity(0.05),
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: Colors.purple.withOpacity(0.1)),
@@ -240,38 +294,62 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.auto_awesome, size: 16, color: Colors.purple[300]),
+                                Icon(
+                                  Icons.auto_awesome,
+                                  size: 16,
+                                  color: Colors.purple[300],
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   "AI Insight",
-                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.purple[300], letterSpacing: 1),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.purple[300],
+                                    letterSpacing: 1,
+                                  ),
                                 ),
                               ],
                             ),
-                            // O Botão para ativar
+                            // The Button to activate
                             if (moodAiQuote == null && !isGeneratingMoodAi)
                               InkWell(
                                 onTap: generateMoodQuote,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.purple[50],
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.purple[100]!),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
                                   ),
-                                  child: const Text("Generate", style: TextStyle(fontSize: 12, color: Colors.purple)),
+                                  decoration: BoxDecoration(
+                                    color: _isDarkMode
+                                        ? Colors.purple.withOpacity(0.2)
+                                        : Colors.purple[50],
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.purple[100]!,
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    "Generate",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.purple,
+                                    ),
+                                  ),
                                 ),
-                              )
+                              ),
                           ],
                         ),
                         const SizedBox(height: 12),
-                        
-                        // Lógica: Se carregar -> Barra; Se tiver texto -> Texto; Senão -> Instrução
+
+                        // Logic: If loading -> Bar; If text -> Text; Else -> Instruction
                         if (isGeneratingMoodAi)
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             child: LinearProgressIndicator(
-                              backgroundColor: Colors.purple[50],
+                              backgroundColor: _isDarkMode
+                                  ? Colors.purple.withOpacity(0.2)
+                                  : Colors.purple[50],
                               color: Colors.purple[300],
                               minHeight: 4,
                               borderRadius: BorderRadius.circular(2),
@@ -280,12 +358,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         else if (moodAiQuote != null)
                           Text(
                             moodAiQuote!,
-                            style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic, color: Colors.grey[800]),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontStyle: FontStyle.italic,
+                              color: _isDarkMode
+                                  ? Colors.grey[300]
+                                  : Colors.grey[800],
+                            ),
                           )
                         else
                           Text(
                             "Tap generate to get an inspiring quote for this specific emotion.",
-                            style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: _isDarkMode
+                                  ? Colors.grey[500]
+                                  : Colors.grey[400],
+                            ),
                           ),
                       ],
                     ),
@@ -295,7 +384,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ],
               ),
             );
-          }
+          },
         );
       },
     );
@@ -352,15 +441,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
             .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return const Center(child: Text("Error loading data"));
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          if (snapshot.hasError)
+            return const Center(child: Text("Error loading data"));
+          if (!snapshot.hasData)
+            return const Center(child: CircularProgressIndicator());
 
           final docs = snapshot.data!.docs;
-          
+
           Map<String, List<QueryDocumentSnapshot>> moodsByDate = {};
           for (var doc in docs) {
             final data = doc.data() as Map<String, dynamic>;
-            final dateKey = data['date_string'] ?? ''; 
+            final dateKey = data['date_string'] ?? '';
             if (dateKey.isNotEmpty) {
               if (moodsByDate[dateKey] == null) moodsByDate[dateKey] = [];
               moodsByDate[dateKey]!.add(doc);
@@ -381,7 +472,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     color: _surfaceColor,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 4))
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
+                      ),
                     ],
                   ),
                   child: TableCalendar(
@@ -393,15 +488,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       setState(() {
                         _selectedDay = selectedDay;
                         _focusedDay = focusedDay;
-                        // Reset ao AI diário quando muda o dia
-                        _dailyAiQuote = null; 
+                        // Reset daily AI when day changes
+                        _dailyAiQuote = null;
                         _isGeneratingDaily = false;
                       });
                     },
-                    rowHeight: 60, 
+                    rowHeight: 60,
                     headerStyle: const HeaderStyle(
-                      formatButtonVisible: false, 
+                      formatButtonVisible: false,
                       titleCentered: true,
+                    ),
+                    calendarStyle: CalendarStyle(
+                      defaultTextStyle: TextStyle(color: _textMain),
+                      weekendTextStyle: TextStyle(color: _textMain),
+                      outsideTextStyle: TextStyle(color: _textSecondary),
                     ),
                     eventLoader: (day) {
                       final key = day.toString().split(' ')[0];
@@ -414,10 +514,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         bool hasEvents = events != null && events.isNotEmpty;
                         Color moodColor = Colors.transparent;
                         if (hasEvents) {
-                           final data = events.first.data() as Map<String, dynamic>;
-                           moodColor = _getColorForMood(data['mood_label'] ?? '');
+                          final data =
+                              events.first.data() as Map<String, dynamic>;
+                          moodColor = _getColorForMood(
+                            data['mood_label'] ?? '',
+                          );
                         }
-                        return _buildCalendarCell(day, moodColor, hasEvents: hasEvents);
+                        return _buildCalendarCell(
+                          day,
+                          moodColor,
+                          hasEvents: hasEvents,
+                        );
                       },
                       selectedBuilder: (context, day, focusedDay) {
                         final key = day.toString().split(' ')[0];
@@ -425,10 +532,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         bool hasEvents = events != null && events.isNotEmpty;
                         Color moodColor = Colors.transparent;
                         if (hasEvents) {
-                           final data = events.first.data() as Map<String, dynamic>;
-                           moodColor = _getColorForMood(data['mood_label'] ?? '');
+                          final data =
+                              events.first.data() as Map<String, dynamic>;
+                          moodColor = _getColorForMood(
+                            data['mood_label'] ?? '',
+                          );
                         }
-                        return _buildCalendarCell(day, moodColor, isSelected: true, hasEvents: hasEvents);
+                        return _buildCalendarCell(
+                          day,
+                          moodColor,
+                          isSelected: true,
+                          hasEvents: hasEvents,
+                        );
                       },
                       todayBuilder: (context, day, focusedDay) {
                         final key = day.toString().split(' ')[0];
@@ -436,12 +551,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         bool hasEvents = events != null && events.isNotEmpty;
                         Color moodColor = Colors.transparent;
                         if (hasEvents) {
-                           final data = events.first.data() as Map<String, dynamic>;
-                           moodColor = _getColorForMood(data['mood_label'] ?? '');
+                          final data =
+                              events.first.data() as Map<String, dynamic>;
+                          moodColor = _getColorForMood(
+                            data['mood_label'] ?? '',
+                          );
                         }
-                        return _buildCalendarCell(day, moodColor, isToday: true, hasEvents: hasEvents);
+                        return _buildCalendarCell(
+                          day,
+                          moodColor,
+                          isToday: true,
+                          hasEvents: hasEvents,
+                        );
                       },
-                      markerBuilder: (context, day, events) => const SizedBox(), 
+                      markerBuilder: (context, day, events) => const SizedBox(),
                     ),
                   ),
                 ),
@@ -452,11 +575,26 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
                     children: [
-                      _buildStatCard('Top Mood', 'Happy', Icons.sentiment_satisfied, Colors.green),
+                      _buildStatCard(
+                        'Top Mood',
+                        'Happy',
+                        Icons.sentiment_satisfied,
+                        Colors.green,
+                      ),
                       const SizedBox(width: 12),
-                      _buildStatCard('Streak', '${moodsByDate.length} Days', Icons.local_fire_department, Colors.orange),
+                      _buildStatCard(
+                        'Streak',
+                        '${moodsByDate.length} Days',
+                        Icons.local_fire_department,
+                        Colors.orange,
+                      ),
                       const SizedBox(width: 12),
-                      _buildStatCard('Entries', '${docs.length} Total', Icons.history_edu, const Color(0xFF58598D)),
+                      _buildStatCard(
+                        'Entries',
+                        '${docs.length} Total',
+                        Icons.history_edu,
+                        const Color(0xFF58598D),
+                      ),
                     ],
                   ),
                 ),
@@ -471,11 +609,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     children: [
                       Text(
                         'Moods on ${DateFormat('MMM d').format(_selectedDay!)}',
-                        style: TextStyle(color: _textMain, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: _textMain,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       Text(
                         '${moodsForSelectedDay.length} logs',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 14),
+                        style: TextStyle(color: _textSecondary, fontSize: 14),
                       ),
                     ],
                   ),
@@ -485,9 +627,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                 // 4. Horizontal List
                 if (moodsForSelectedDay.isEmpty)
-                   Padding(
+                  Padding(
                     padding: const EdgeInsets.all(20.0),
-                    child: Text("No moods logged for this day. O _ O", style: TextStyle(color: Colors.grey[400])),
+                    child: Text(
+                      "No moods logged for this day. O _ O",
+                      style: TextStyle(color: _textSecondary),
+                    ),
                   )
                 else
                   SizedBox(
@@ -497,96 +642,116 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: moodsForSelectedDay.length,
                       itemBuilder: (context, index) {
-                        final data = moodsForSelectedDay[index].data() as Map<String, dynamic>;
-                        
+                        final data =
+                            moodsForSelectedDay[index].data()
+                                as Map<String, dynamic>;
+
                         String timeString = "--:--";
                         if (data['timestamp'] != null) {
-                          DateTime date = (data['timestamp'] as Timestamp).toDate();
+                          DateTime date = (data['timestamp'] as Timestamp)
+                              .toDate();
                           timeString = DateFormat('h:mm a').format(date);
                         }
 
                         String note = data['note'] ?? '';
                         String label = data['mood_label'] ?? 'Mood';
 
-                        return _buildDailyMoodCard(
-                          label,
-                          timeString,
-                          note, 
-                        );
+                        return _buildDailyMoodCard(label, timeString, note);
                       },
                     ),
                   ),
 
                 const SizedBox(height: 24),
 
-                // 5. --- NOVA SECÇÃO: DAILY AI WISDOM (RESUMO DO DIA) ---
-                // Só aparece se houver moods registados nesse dia
+                // 5. --- NEW SECTION: DAILY AI WISDOM (DAILY SUMMARY) ---
+                // Only appears if there are moods logged for this day
                 if (moodsForSelectedDay.isNotEmpty)
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: _surfaceColor,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(color: _primaryColor.withOpacity(0.3)),
                       boxShadow: [
-                        BoxShadow(color: _primaryColor.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))
+                        BoxShadow(
+                          color: _primaryColor.withOpacity(0.1),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
                       ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                         Row(
-                           mainAxisAlignment: MainAxisAlignment.center,
-                           children: [
-                             Icon(Icons.auto_awesome, color: _primaryColor),
-                             const SizedBox(width: 8),
-                             const Text(
-                               "Daily Wisdom",
-                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                             ),
-                           ],
-                         ),
-                         const SizedBox(height: 16),
-                         
-                         // Lógica: Se loading -> Linha; Se texto -> Mostra texto; Senão -> Botão
-                         if (_isGeneratingDaily)
-                           Padding(
-                             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                             child: LinearProgressIndicator(
-                               color: _primaryColor,
-                               backgroundColor: _primaryColor.withOpacity(0.2),
-                               minHeight: 4,
-                               borderRadius: BorderRadius.circular(2),
-                             ),
-                           )
-                         else if (_dailyAiQuote != null)
-                           Text(
-                             _dailyAiQuote!,
-                             textAlign: TextAlign.center,
-                             style: const TextStyle(
-                               fontSize: 14, 
-                               fontStyle: FontStyle.italic, 
-                               height: 1.5,
-                               color: Colors.black87
-                             ),
-                           )
-                         else
-                           ElevatedButton(
-                             onPressed: _generateDailyInsight,
-                             style: ElevatedButton.styleFrom(
-                               backgroundColor: _textMain,
-                               foregroundColor: Colors.white,
-                               elevation: 0,
-                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                             ),
-                             child: const Text("Get Daily Insight"),
-                           ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.auto_awesome, color: _primaryColor),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Daily Wisdom",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: _textMain,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Logic: If loading -> Line; If text -> Show text; Else -> Button
+                        if (_isGeneratingDaily)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 40,
+                              vertical: 10,
+                            ),
+                            child: LinearProgressIndicator(
+                              color: _primaryColor,
+                              backgroundColor: _primaryColor.withOpacity(0.2),
+                              minHeight: 4,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          )
+                        else if (_dailyAiQuote != null)
+                          Text(
+                            _dailyAiQuote!,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontStyle: FontStyle.italic,
+                              height: 1.5,
+                              color: _textMain,
+                            ),
+                          )
+                        else
+                          ElevatedButton(
+                            onPressed: _generateDailyInsight,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _textMain,
+                              foregroundColor: _isDarkMode
+                                  ? Colors.black
+                                  : Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                            ),
+                            child: const Text("Get Daily Insight"),
+                          ),
                       ],
                     ),
                   ),
-                
+
                 const SizedBox(height: 80),
               ],
             ),
@@ -597,14 +762,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   // Helper to build calendar cell column
-  Widget _buildCalendarCell(DateTime day, Color color, {bool isSelected = false, bool isToday = false, bool hasEvents = false}) {
+  Widget _buildCalendarCell(
+    DateTime day,
+    Color color, {
+    bool isSelected = false,
+    bool isToday = false,
+    bool hasEvents = false,
+  }) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Expanded(
           child: _buildSimpleMoodCircle(
-            text: '${day.day}', 
-            color: color, 
+            text: '${day.day}',
+            color: color,
             isSelected: isSelected,
             isToday: isToday,
             hasEvents: hasEvents,
@@ -613,13 +784,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
         if (hasEvents) ...[
           _buildMarker(),
           const SizedBox(height: 4),
-        ] else 
+        ] else
           const SizedBox(height: 9),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color iconColor) {
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color iconColor,
+  ) {
     return Container(
       constraints: const BoxConstraints(minWidth: 140),
       padding: const EdgeInsets.all(12),
@@ -631,15 +807,29 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
           const SizedBox(height: 4),
           Row(
             children: [
               Icon(icon, color: iconColor, size: 24),
               const SizedBox(width: 8),
-              Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _textMain)),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: _textMain,
+                ),
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -651,7 +841,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     IconData icon = _getIconForMood(label);
 
     return GestureDetector(
-      onTap: () => _showMoodDetails(context, label, note, time, _getColorForMood(label)),
+      onTap: () =>
+          _showMoodDetails(context, label, note, time, _getColorForMood(label)),
       child: Container(
         width: 160,
         margin: const EdgeInsets.only(right: 12),
@@ -660,19 +851,45 @@ class _HistoryScreenState extends State<HistoryScreen> {
           color: _surfaceColor,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: Colors.grey.withOpacity(0.1)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(16)),
-              child: Icon(icon, color: Colors.black54),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                icon,
+                color: _isDarkMode ? Colors.white70 : Colors.black54,
+              ),
             ),
             const Spacer(),
-            Text(label, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textMain)),
-            Text(time, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[400])),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: _textMain,
+              ),
+            ),
+            Text(
+              time,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: _textSecondary,
+              ),
+            ),
           ],
         ),
       ),
