@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import fs from 'node:fs';
 import path from 'node:path';
-import {GoogleGenerativeAI} from '@google/generative-ai';
-import {fileURLToPath} from 'url';
+// 1. New Import
+import {GoogleGenAI} from "@google/genai";
 
 dotenv.config();
 
@@ -20,20 +20,12 @@ if (!apiKey) {
     process.exit(1);
 }
 
-const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash-lite"
-    // generationConfig: {
-    //     responseMimeType: "application/json"
-    // }
-});
+// 2. New Client Initialization
+const ai = new GoogleGenAI({apiKey: apiKey});
 
 const getSystemPrompt = () => {
     try {
-        const __filename = fileURLToPath(import.meta.url);
-        const __dirname = path.dirname(__filename);
         const promptPath = path.join(__dirname, 'system-prompt.txt');
-        console.log(promptPath)
         return fs.readFileSync(promptPath, 'utf-8');
     } catch (error) {
         console.error("Error reading system-prompt.txt", error);
@@ -41,53 +33,76 @@ const getSystemPrompt = () => {
     }
 };
 
-app.get("/health", (req: Request, res: Response) => {
-    res.status(200).send("OK");
-});
+/**
+ * Helper to retry calls if 503 Overloaded
+ */
+async function generateContentWithRetry(contents: any, retries = 3, delay = 1000) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            // 3. New Call Syntax
+            const response = await ai.models.generateContent({
+                model: "gemini-2.5-flash", // Or "gemini-2.0-flash-exp"
+                contents: contents,
+                config: {
+                    responseMimeType: "application/json",
+                }
+            });
+            return response;
+        } catch (error: any) {
+            const isOverloaded = error.message?.includes('503') || error.message?.includes('overloaded');
+            if (isOverloaded && i < retries - 1) {
+                console.warn(`Gemini is overloaded. Retrying in ${delay}ms...`);
+                await new Promise(res => setTimeout(res, delay));
+                delay *= 2;
+            } else {
+                throw error;
+            }
+        }
+    }
+}
 
 app.post('/api/analyze', async (req: Request, res: Response): Promise<any> => {
     try {
-        // Expected format: { diaries: [{ id, diary, emotion, date }] }
         const {diaries} = req.body;
 
         if (!diaries || !Array.isArray(diaries) || diaries.length === 0) {
             return res.status(400).json({error: 'A list of diaries is required'});
         }
 
-        // ead the latest version of your prompt file
-        // Reading it here ensures that if you edit the text file,
-        // the very next request uses the new version without restarting node.
         const baseSystemInstruction = getSystemPrompt();
 
-        if (!baseSystemInstruction) {
-            return res.status(500).json({error: 'System prompt file missing or empty'});
+        // 4. Constructing the Prompt parts
+        // The new SDK prefers an array of parts for text + data
+        const contents = [
+            {
+                role: "user",
+                parts: [
+                    {text: baseSystemInstruction},
+                    {text: "\n\nHere is the user data:\n"},
+                    {text: JSON.stringify(diaries, null, 2)}
+                ]
+            }
+        ];
+
+        // Call Gemini with our retry wrapper
+        const response = await generateContentWithRetry(contents);
+
+        // 5. Getting the text
+        // The new SDK simplifies this. If responseMimeType is JSON,
+        // response.text often returns the stringified JSON.
+        const text = response?.text;
+
+        if (!text) {
+            throw new Error("Empty response from Gemini");
         }
 
-        // We combine your instructions with the actual data
-        const finalPrompt = `${baseSystemInstruction}\n\nHere is the user data:\n${JSON.stringify(diaries, null, 2)}`;
+        // Parse to ensure valid JSON before sending to Flutter
+        const jsonResponse = JSON.parse(text);
 
-        const result = await model.generateContent(finalPrompt);
-        const response = result.response;
-        const text = response.text();
-
-        // Since we enforced JSON mode, 'text' is a valid JSON string.
-        // We parse it here to ensure it is valid before sending to Flutter.
-        try {
-            console.log(text)
-            const jsonResponse = JSON.parse(text);
-
-            return res.json({
-                success: true,
-                data: jsonResponse,
-            });
-        } catch (jsonError) {
-            console.error("Error parsing JSON response from Gemini:", jsonError);
-            return res.status(500).json({
-                success: false,
-                error: "Invalid JSON response from AI model",
-                rawResponse: text,
-            });
-        }
+        return res.json({
+            success: true,
+            data: jsonResponse,
+        });
 
     } catch (error: any) {
         console.error('Error processing diaries:', error);
