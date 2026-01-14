@@ -18,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         MaterialPageRoute(builder: (context) => const ProfileScreen()),
       );
+
       return;
     }
     setState(() {
@@ -29,8 +30,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final textColor = theme.textTheme.titleLarge?.color ?? (isDark ? Colors.white : const Color(0xFF2D2D2D));
-    final iconColor = theme.iconTheme.color ?? (isDark ? Colors.white : const Color(0xFF2D2D2D));
+    final textColor =
+        theme.textTheme.titleLarge?.color ??
+        (isDark ? Colors.white : const Color(0xFF2D2D2D));
+    final iconColor =
+        theme.iconTheme.color ??
+        (isDark ? Colors.white : const Color(0xFF2D2D2D));
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -82,11 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      child: Icon(
-                        Icons.spa,
-                        size: 80,
-                        color: iconColor,
-                      ),
+                      child: Icon(Icons.spa, size: 80, color: iconColor),
                     ),
                     const SizedBox(height: 32),
                     Text(

@@ -13,6 +13,8 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   int _selectedIndex = 4; // Settings index
+  bool _dailyReminder = true;
+  bool _appLock = false;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -161,7 +163,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: Icons.notifications,
                   iconColor: const Color(0xFFB39DDB),
                   title: 'Daily Reminder',
-                  trailing: _buildSwitch(true),
+                  trailing: _buildSwitch(context, _dailyReminder, (val) {
+                    setState(() {
+                      _dailyReminder = val;
+                    });
+                  }),
                 ),
                 const SizedBox(height: 12),
                 _buildNotificationItem(
@@ -192,7 +198,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: Icons.lock,
                   iconColor: const Color(0xFF81C784),
                   title: 'App Lock',
-                  trailing: _buildSwitch(false),
+                  trailing: _buildSwitch(context, _appLock, (val) {
+                    setState(() {
+                      _appLock = val;
+                    });
+                  }),
                 ),
                 const SizedBox(height: 12),
                 _buildSecurityItem(
@@ -443,14 +453,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSwitch(bool value) {
-    return Switch(
-      value: value,
-      onChanged: (val) {},
-      activeThumbColor: const Color(0xFFB39DDB),
-      activeTrackColor: const Color(0xFFB39DDB).withOpacity(0.3),
-      inactiveThumbColor: Colors.grey[300],
-      inactiveTrackColor: Colors.grey[200],
+  Widget _buildSwitch(BuildContext context, bool value, Function(bool) onChanged) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 50,
+        height: 30,
+        padding: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          color: value 
+              ? const Color(0xFFB39DDB) 
+              : (isDark ? Colors.grey[700] : Colors.grey[300]),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: AnimatedAlign(
+          duration: const Duration(milliseconds: 200),
+          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+          child: Container(
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

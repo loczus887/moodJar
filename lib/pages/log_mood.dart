@@ -30,7 +30,12 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
     {'label': 'Tired', 'emoji': '😴', 'color': Color(0xFFF0E6FF), 'value': 2},
     {'label': 'Anxious', 'emoji': '😰', 'color': Color(0xFFF0F0F5), 'value': 3},
     {'label': 'Excited', 'emoji': '🤩', 'color': Color(0xFFFFFCE0), 'value': 4},
-    {'label': 'Grateful', 'emoji': '🥰', 'color': Color(0xFFFFE0E0), 'value': 6},
+    {
+      'label': 'Grateful',
+      'emoji': '🥰',
+      'color': Color(0xFFFFE0E0),
+      'value': 6,
+    },
     {'label': 'Proud', 'emoji': '😁', 'color': Color(0xFFE0FFF4), 'value': 7},
     {'label': 'Angry', 'emoji': '😡', 'color': Color(0xFFFFE0E0), 'value': 8},
   ];
@@ -58,12 +63,15 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
             .doc(userId)
             .collection('mood_logs')
             .add({
-          'mood_label': selectedMoodData['label'],
-          'mood_value': selectedMoodData['value'], // Useful for numeric charts (1 to 5)
-          'note': _journalController.text.trim(),
-          'timestamp': FieldValue.serverTimestamp(), // Exact date for sorting in the calendar
-          'date_string': DateTime.now().toIso8601String().split('T')[0], // "2023-10-24" for easy grouping
-        });
+              'mood_label': selectedMoodData['label'],
+              'mood_value': selectedMoodData['value'],
+              // Useful for numeric charts (1 to 5)
+              'note': _journalController.text.trim(),
+              'timestamp': FieldValue.serverTimestamp(),
+              // Exact date for sorting in the calendar
+              'date_string': DateTime.now().toIso8601String().split('T')[0],
+              // "2023-10-24" for easy grouping
+            });
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -73,9 +81,9 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error saving mood: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error saving mood: $e')));
         }
       } finally {
         if (mounted) setState(() => _isSaving = false);
@@ -96,7 +104,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
           children: [
             // Header (Back button and Date)
             _buildHeader(),
-            
+
             // Content with Scroll
             Expanded(
               child: SingleChildScrollView(
@@ -114,16 +122,17 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
                       ),
                     ),
                     const SizedBox(height: 30),
-                    
+
                     // Mood Grid
                     _buildMoodGrid(),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // Text Box (Journal)
                     _buildJournalInput(),
-                    
-                    const SizedBox(height: 100), // Space so the floating button doesn't cover content
+
+                    const SizedBox(height: 100),
+                    // Space so the floating button doesn't cover content
                   ],
                 ),
               ),
@@ -144,21 +153,26 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
               backgroundColor: _primaryColor,
               foregroundColor: _textMain,
               elevation: 8,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
             ),
-            child: _isSaving 
-              ? const CircularProgressIndicator(color: Colors.black)
-              : const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Save Mood',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward),
-                  ],
-                ),
+            child: _isSaving
+                ? const CircularProgressIndicator(color: Colors.black)
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Save Mood',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -182,7 +196,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
             children: [
               Text(
                 // You can use the 'intl' package to format the real date here
-                'TODAY', 
+                'TODAY',
                 style: TextStyle(
                   color: _textMuted,
                   fontSize: 12,
@@ -203,16 +217,19 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
     // SizedBox define a altura da área de scroll.
     // 380px é suficiente para caber 2 linhas de cartões + espaços
     return SizedBox(
-      height: 380, 
+      height: 380,
       child: GridView.builder(
-        scrollDirection: Axis.horizontal, // Faz o scroll para a direita
-        padding: const EdgeInsets.symmetric(vertical: 10), // Espaço em cima e em baixo para a sombra não cortar
+        scrollDirection: Axis.horizontal,
+        // Faz o scroll para a direita
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        // Espaço em cima e em baixo para a sombra não cortar
         itemCount: _moods.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2, // 2 Linhas
           mainAxisSpacing: 16, // Espaço entre colunas (horizontal)
           crossAxisSpacing: 16, // Espaço entre linhas (vertical)
-          childAspectRatio: 1.1, // Controla a "magreza" do cartão (Altura vs Largura)
+          childAspectRatio:
+              1.1, // Controla a "magreza" do cartão (Altura vs Largura)
         ),
         itemBuilder: (context, index) {
           return _buildMoodCard(index);
@@ -240,7 +257,9 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: isSelected ? _primaryColor.withOpacity(0.4) : Colors.black.withOpacity(0.05),
+              color: isSelected
+                  ? _primaryColor.withOpacity(0.4)
+                  : Colors.black.withOpacity(0.05),
               blurRadius: isSelected ? 12 : 10,
               offset: const Offset(0, 4),
             ),
@@ -250,36 +269,50 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              height: 60, // Ajustei o tamanho para caber bem na grelha horizontal
+              height: 60,
+              // Ajustei o tamanho para caber bem na grelha horizontal
               width: double.infinity,
               decoration: BoxDecoration(
                 color: mood['color'],
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
-                child: Text(mood['emoji'], style: const TextStyle(fontSize: 32)),
+                child: Text(
+                  mood['emoji'],
+                  style: const TextStyle(fontSize: 32),
+                ),
               ),
             ),
             const Spacer(),
             Text(
               mood['label'],
-              style: TextStyle(color: _textMain, fontWeight: FontWeight.bold, fontSize: 14),
+              style: TextStyle(
+                color: _textMain,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
             if (isSelected)
               Container(
                 padding: const EdgeInsets.all(2),
-                decoration: BoxDecoration(color: _primaryColor, shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: _primaryColor,
+                  shape: BoxShape.circle,
+                ),
                 child: const Icon(Icons.check, size: 12, color: Colors.black),
               )
             else
-              const SizedBox(height: 16) // Espaço vazio para manter alinhamento
+              const SizedBox(
+                height: 16,
+              ), // Espaço vazio para manter alinhamento
           ],
         ),
       ),
     );
   }
+
   // Text Input
   Widget _buildJournalInput() {
     return Container(
@@ -302,7 +335,10 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
             children: [
               Icon(Icons.edit_note, color: _primaryColor),
               const SizedBox(width: 8),
-              Text('Brief Description', style: TextStyle(fontWeight: FontWeight.bold, color: _textMain)),
+              Text(
+                'Brief Description',
+                style: TextStyle(fontWeight: FontWeight.bold, color: _textMain),
+              ),
             ],
           ),
           const Divider(),
