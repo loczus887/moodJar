@@ -46,3 +46,8 @@ app.*.map.json
 
 /android/app/google-services.json
 /lib/firebase_options.dart
+
+gemini-api/node_modules
+
+.env
+**/.env

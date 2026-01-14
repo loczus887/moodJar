@@ -1,3 +1,4 @@
+import 'package:app/pages/history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'profile_screen.dart';
@@ -29,6 +30,13 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const LogMoodScreen()),
+      );
+      return;
+    }
+    if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const HistoryScreen()),
       );
       return;
     }
