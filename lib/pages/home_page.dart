@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'profile_screen.dart';
+import 'log_mood.dart';
 import '../widgets/custom_navigation_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,7 +19,13 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         MaterialPageRoute(builder: (context) => const ProfileScreen()),
       );
-
+      return;
+    }
+    if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LogMoodScreen()),
+      );
       return;
     }
     setState(() {
@@ -110,7 +117,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 40),
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LogMoodScreen(),
+                            ),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2D2D2D),
                           foregroundColor: Colors.white,
@@ -143,7 +157,12 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(top: 60),
         child: FloatingActionButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const LogMoodScreen()),
+            );
+          },
           backgroundColor: const Color(0xFFB39DDB),
           elevation: 8,
           child: const Icon(Icons.add, size: 32),

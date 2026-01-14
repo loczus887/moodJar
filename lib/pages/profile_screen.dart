@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../bloc/auth_bloc/auth_bloc.dart';
 import '../bloc/theme_cubit/theme_cubit.dart';
-import '../widgets/custom_navigation_bar.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,7 +12,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  int _selectedIndex = 4; // Settings index
   bool _dailyReminder = true;
   bool _appLock = false;
 
@@ -34,16 +32,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _saveSetting(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    if (index == 0) {
-      Navigator.popUntil(context, (route) => route.isFirst);
-    }
-    // Add other routing logic here if needed
   }
 
   @override
@@ -298,10 +286,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: CustomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
       ),
     );
   }
