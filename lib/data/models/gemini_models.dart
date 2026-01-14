@@ -23,41 +23,33 @@ class DiaryEntry {
   final String content;
   final String date;
 
-  DiaryEntry({
-    required this.id,
-    required this.content,
-    required this.date,
-  });
+  DiaryEntry({required this.id, required this.content, required this.date});
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'content': content,
-      'date': date,
-    };
+    return {'id': id, 'content': content, 'date': date};
   }
 }
 
 class MemoryEntry {
   final String id;
   final String content;
+  final int? score; // Added score field
 
-  MemoryEntry({
-    required this.id,
-    required this.content,
-  });
+  MemoryEntry({required this.id, required this.content, this.score});
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'content': content,
-    };
+    final map = {'id': id, 'content': content};
+    if (score != null) {
+      map['score'] = score as String;
+    }
+    return map;
   }
 
   factory MemoryEntry.fromJson(Map<String, dynamic> json) {
     return MemoryEntry(
       id: json['id'] as String? ?? '',
       content: json['content'] as String? ?? '',
+      score: json['score'] as int?,
     );
   }
 }
@@ -87,17 +79,17 @@ class GeminiAnalysisResponse {
   final AnalysisData? data;
   final AnalysisError? error;
 
-  GeminiAnalysisResponse({
-    required this.success,
-    this.data,
-    this.error,
-  });
+  GeminiAnalysisResponse({required this.success, this.data, this.error});
 
   factory GeminiAnalysisResponse.fromJson(Map<String, dynamic> json) {
     return GeminiAnalysisResponse(
       success: json['success'] as bool? ?? false,
-      data: json['data'] != null ? AnalysisData.fromJson(json['data'] as Map<String, dynamic>) : null,
-      error: json['error'] != null ? AnalysisError.fromJson(json['error'] as Map<String, dynamic>) : null,
+      data: json['data'] != null
+          ? AnalysisData.fromJson(json['data'] as Map<String, dynamic>)
+          : null,
+      error: json['error'] != null
+          ? AnalysisError.fromJson(json['error'] as Map<String, dynamic>)
+          : null,
     );
   }
 }
@@ -107,11 +99,7 @@ class AnalysisData {
   final Map<String, String>? moodSentences;
   final List<MemoryEntry>? finalMemories;
 
-  AnalysisData({
-    this.dailyText,
-    this.moodSentences,
-    this.finalMemories,
-  });
+  AnalysisData({this.dailyText, this.moodSentences, this.finalMemories});
 
   factory AnalysisData.fromJson(Map<String, dynamic> json) {
     return AnalysisData(
@@ -130,10 +118,7 @@ class AnalysisError {
   final String message;
   final String code;
 
-  AnalysisError({
-    required this.message,
-    required this.code,
-  });
+  AnalysisError({required this.message, required this.code});
 
   factory AnalysisError.fromJson(Map<String, dynamic> json) {
     return AnalysisError(

@@ -81,6 +81,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // --- FUNCTION FOR DAILY AI ---
   Future<void> _generateDailyInsight(
     List<QueryDocumentSnapshot> dailyMoods,
+    String userId,
   ) async {
     setState(() {
       _isGeneratingDaily = true;
@@ -111,13 +112,37 @@ class _HistoryScreenState extends State<HistoryScreen> {
       );
     }).toList();
 
+    // Fetch existing memories
+    List<MemoryEntry> currentMemories = [];
+    try {
+      final memoriesSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('memories')
+          .get();
+
+      currentMemories = memoriesSnapshot.docs.map((doc) {
+        return MemoryEntry(
+          id: doc.id,
+          content: doc['content'] as String? ?? '',
+          score: doc['score'] as int?, // Fetch score
+        );
+      }).toList();
+    } catch (e) {
+      debugPrint("Error fetching memories: $e");
+    }
+
+    // Only update memories if the selected day is TODAY
+    bool isToday = isSameDay(_selectedDay, DateTime.now());
+
     // Call API
     final response = await _geminiRepository.analyze(
       diaries: diaries,
-      options: const AnalysisOptions(
+      memories: currentMemories,
+      options: AnalysisOptions(
         dailyText: true,
         moodSentences: true, // Generate mood sentences as well
-        memories: false,
+        memories: isToday, // Only generate/update memories if it's today
       ),
     );
 
@@ -134,12 +159,47 @@ class _HistoryScreenState extends State<HistoryScreen> {
             _moodQuotesCache.addAll(response.data!.moodSentences!);
             _saveMoodQuotesCache();
           }
+
+          // Store memories if returned and it is today
+          if (isToday && response.data?.finalMemories != null) {
+            _storeMemories(userId, response.data!.finalMemories!);
+          }
         } else {
           _dailyAiQuote =
               "Could not generate insight. ${response.error?.message ?? ''}";
         }
       });
     }
+  }
+
+  Future<void> _storeMemories(String userId, List<MemoryEntry> memories) async {
+    final batch = FirebaseFirestore.instance.batch();
+    final memoriesRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('memories');
+
+    for (var memory in memories) {
+      DocumentReference docRef;
+      if (memory.id.isNotEmpty) {
+        docRef = memoriesRef.doc(memory.id);
+      } else {
+        docRef = memoriesRef.doc(); // Generate new ID
+      }
+
+      final data = {
+        'content': memory.content,
+        'updated_at': FieldValue.serverTimestamp(),
+      };
+
+      if (memory.score != null) {
+        data['score'] = memory.score!;
+      }
+
+      batch.set(docRef, data);
+    }
+
+    await batch.commit();
   }
 
   // Color Map
@@ -869,8 +929,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           )
                         else
                           ElevatedButton(
-                            onPressed: () =>
-                                _generateDailyInsight(moodsForSelectedDay),
+                            onPressed: () => _generateDailyInsight(
+                              moodsForSelectedDay,
+                              userId,
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: _textMain,
                               foregroundColor: _isDarkMode
