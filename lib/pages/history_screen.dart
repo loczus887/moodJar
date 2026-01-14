@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../bloc/auth_bloc/auth_bloc.dart';
 import '../data/models/gemini_models.dart';
 import '../data/repositories/gemini_repository.dart';
@@ -41,11 +43,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
   final GeminiRepository _geminiRepository = GeminiRepository();
   bool _isApiAvailable = false;
 
+  // Cache for mood quotes
+  Map<String, String> _moodQuotesCache = {};
+
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
     _checkApiAvailability();
+    _loadMoodQuotesCache();
   }
 
   Future<void> _checkApiAvailability() async {
@@ -55,6 +61,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
         _isApiAvailable = isHealthy;
       });
     }
+  }
+
+  Future<void> _loadMoodQuotesCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cacheString = prefs.getString('mood_quotes_cache');
+    if (cacheString != null) {
+      setState(() {
+        _moodQuotesCache = Map<String, String>.from(jsonDecode(cacheString));
+      });
+    }
+  }
+
+  Future<void> _saveMoodQuotesCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('mood_quotes_cache', jsonEncode(_moodQuotesCache));
   }
 
   // --- FUNCTION FOR DAILY AI ---
@@ -95,7 +116,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       diaries: diaries,
       options: const AnalysisOptions(
         dailyText: true,
-        moodSentences: false, // We only want the daily summary here
+        moodSentences: true, // Generate mood sentences as well
         memories: false,
       ),
     );
@@ -103,8 +124,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
     if (mounted) {
       setState(() {
         _isGeneratingDaily = false;
-        if (response.success && response.data?.dailyText != null) {
-          _dailyAiQuote = response.data!.dailyText;
+        if (response.success) {
+          if (response.data?.dailyText != null) {
+            _dailyAiQuote = response.data!.dailyText;
+          }
+
+          // Cache mood sentences
+          if (response.data?.moodSentences != null) {
+            _moodQuotesCache.addAll(response.data!.moodSentences!);
+            _saveMoodQuotesCache();
+          }
         } else {
           _dailyAiQuote =
               "Could not generate insight. ${response.error?.message ?? ''}";
@@ -209,7 +238,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       builder: (context) {
         // Local variables to control state INSIDE the Bottom Sheet
         bool isGeneratingMoodAi = false;
-        String? moodAiQuote;
+        String? moodAiQuote = _moodQuotesCache[docId]; // Check cache first
 
         // StatefulBuilder allows updating UI inside Bottom Sheet without closing
         return StatefulBuilder(
@@ -256,8 +285,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 isGeneratingMoodAi = false;
                 if (response.success && response.data?.moodSentences != null) {
                   // The API returns a map keyed by ID
-                  moodAiQuote = response.data!.moodSentences![docId];
-                  if (moodAiQuote == null) {
+                  final quote = response.data!.moodSentences![docId];
+                  if (quote != null) {
+                    moodAiQuote = quote;
+                    // Update cache
+                    _moodQuotesCache[docId] = quote;
+                    _saveMoodQuotesCache();
+                  } else {
                     moodAiQuote = "No specific insight generated.";
                   }
                 } else {
@@ -368,7 +402,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   const SizedBox(height: 20),
 
                   // --- NEW SECTION: AI MOOD INSIGHT ---
-                  if (_isApiAvailable)
+                  if (_isApiAvailable || moodAiQuote != null)
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
