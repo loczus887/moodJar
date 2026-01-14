@@ -49,7 +49,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
       'label': 'Excited',
       'emoji': '🤩',
       'color': Colors.amberAccent.withValues(alpha: 0.3),
-      'value': 4,
+      'value': 8,
     },
     {
       'label': 'Grateful',
@@ -67,7 +67,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
       'label': 'Angry',
       'emoji': '😡',
       'color': Colors.redAccent.withValues(alpha: 0.3),
-      'value': 8,
+      'value': 4,
     },
   ];
 
