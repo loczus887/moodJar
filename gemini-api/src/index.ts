@@ -17,15 +17,27 @@ const app = express();
 
 app.use(pinoHttp({
     logger,
-    autoLogging: false,
-    customSuccessMessage: (req, res) => {
-        return `Request ${req.id} | ${req.method} ${req.url} | ${res.statusCode} | ${Date.now() - (req as any).startTime}ms`;
+    // 1. Enable autoLogging so /health and other routes actually show up
+    autoLogging: true,
+
+    // 2. FORCE pino to ignore the massive req/res objects in the log output
+    serializers: {
+        req: () => undefined,
+        res: () => undefined,
     },
+
+    // 3. The one-liner you wanted for every request completion
+    customSuccessMessage: (req, res) => {
+        const duration = Date.now() - (req as any).startTime;
+        return `Request ${req.id} | ${req.method} ${req.url} | ${res.statusCode} | ${duration}ms`;
+    },
+
     customErrorMessage: (req, res, err) => {
         return `Request ${req.id} | ${req.method} ${req.url} | ${res.statusCode} | FAILED: ${err.message}`;
     }
 }));
 
+// Timing middleware
 app.use((req, _res, next) => {
     (req as any).startTime = Date.now();
     next();
@@ -47,7 +59,8 @@ const __dirname = path.dirname(__filename);
 const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
     const statusCode = err.status || 500;
 
-    req.log.error({err}, "Request failed");
+    // Use global logger to avoid dumping headers
+    logger.error(`Request ${req.id} failed: ${err.message}`);
 
     let parsedDetails = null;
     try {
@@ -123,11 +136,13 @@ app.post('/api/analyze', async (req: Request, res: Response, next: NextFunction)
             }
         ];
 
-        req.log.info({
+        // 4. Use global logger, manually pass ID. No req object injection.
+        logger.info({
+            id: req.id,
             diaries: diaries.length,
             memories: memories?.length || 0,
             model: MODEL_NAME
-        }, "Analysis Request Processing");
+        }, "Analysis Processing Started");
 
         const response = await ai.models.generateContent({
             model: MODEL_NAME,
