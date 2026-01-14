@@ -12,9 +12,12 @@ class CustomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -27,9 +30,9 @@ class CustomNavigationBar extends StatelessWidget {
         currentIndex: currentIndex,
         onTap: onTap,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
+        backgroundColor: theme.cardColor,
         selectedItemColor: const Color(0xFFB39DDB),
-        unselectedItemColor: Colors.grey[400],
+        unselectedItemColor: isDark ? Colors.grey[600] : Colors.grey[400],
         elevation: 0,
         items: const [
           BottomNavigationBarItem(

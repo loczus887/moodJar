@@ -27,8 +27,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = theme.textTheme.titleLarge?.color ?? (isDark ? Colors.white : const Color(0xFF2D2D2D));
+    final iconColor = theme.iconTheme.color ?? (isDark ? Colors.white : const Color(0xFF2D2D2D));
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -37,16 +42,16 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Mood Jar',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D2D2D),
+                      color: textColor,
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.person, color: Color(0xFF2D2D2D)),
+                    icon: Icon(Icons.person, color: iconColor),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -67,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       padding: const EdgeInsets.all(40),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: theme.cardColor,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
@@ -77,25 +82,28 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.spa,
                         size: 80,
-                        color: Color(0xFF2D2D2D),
+                        color: iconColor,
                       ),
                     ),
                     const SizedBox(height: 32),
-                    const Text(
+                    Text(
                       'Welcome to Mood Jar!',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D2D2D),
+                        color: textColor,
                       ),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'Start tracking your moods',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
                     ),
                     const SizedBox(height: 40),
                     Container(

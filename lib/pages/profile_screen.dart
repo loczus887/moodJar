@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth_bloc/auth_bloc.dart';
+import '../bloc/theme_cubit/theme_cubit.dart';
 import '../widgets/custom_navigation_bar.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -32,22 +33,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       userEmail = authState.user.email ?? 'Anonymous';
     }
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF2D2D2D));
+    final iconColor = theme.iconTheme.color ?? (isDark ? Colors.white : const Color(0xFF2D2D2D));
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF2D2D2D)),
+          icon: Icon(Icons.arrow_back, color: iconColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Settings',
-          style: TextStyle(
-            color: Color(0xFF2D2D2D),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: theme.appBarTheme.titleTextStyle,
         ),
         centerTitle: true,
       ),
@@ -60,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: theme.cardColor,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
@@ -79,17 +81,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           height: 70,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.grey[200],
+                            color: isDark ? Colors.grey[800] : Colors.grey[200],
                           ),
                           child: ClipOval(
                             child: Image.asset(
                               'assets/avatar.png',
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
-                                return const Icon(
+                                return Icon(
                                   Icons.person,
                                   size: 40,
-                                  color: Color(0xFF2D2D2D),
+                                  color: iconColor,
                                 );
                               },
                             ),
@@ -103,7 +105,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFB39DDB),
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
+                              border: Border.all(color: theme.cardColor, width: 2),
                             ),
                             child: const Icon(
                               Icons.edit,
@@ -119,12 +121,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Jamie Doe',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF2D2D2D),
+                              color: textColor,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -132,7 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             userEmail,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: isDark ? Colors.grey[400] : Colors.grey[600],
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -140,21 +142,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             'Pro Member',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[400],
+                              color: isDark ? Colors.grey[500] : Colors.grey[400],
                             ),
                           ),
                         ],
                       ),
                     ),
-                    Icon(Icons.chevron_right, color: Colors.grey[400]),
+                    Icon(Icons.chevron_right, color: isDark ? Colors.grey[500] : Colors.grey[400]),
                   ],
                 ),
               ),
               const SizedBox(height: 32),
-              _buildSection('APPEARANCE', [_buildAppearanceToggle()]),
+              _buildSection(context, 'APPEARANCE', [_buildAppearanceToggle(context)]),
               const SizedBox(height: 24),
-              _buildSection('NOTIFICATIONS', [
+              _buildSection(context, 'NOTIFICATIONS', [
                 _buildNotificationItem(
+                  context,
                   icon: Icons.notifications,
                   iconColor: const Color(0xFFB39DDB),
                   title: 'Daily Reminder',
@@ -162,6 +165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 12),
                 _buildNotificationItem(
+                  context,
                   icon: Icons.access_time,
                   iconColor: const Color(0xFF64B5F6),
                   title: 'Time',
@@ -171,19 +175,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: isDark ? Colors.grey[800] : Colors.grey[100],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
+                    child: Text(
                       '08:00 PM',
-                      style: TextStyle(fontSize: 14, color: Color(0xFF2D2D2D)),
+                      style: TextStyle(fontSize: 14, color: textColor),
                     ),
                   ),
                 ),
               ]),
               const SizedBox(height: 24),
-              _buildSection('SECURITY & DATA', [
+              _buildSection(context, 'SECURITY & DATA', [
                 _buildSecurityItem(
+                  context,
                   icon: Icons.lock,
                   iconColor: const Color(0xFF81C784),
                   title: 'App Lock',
@@ -191,17 +196,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 12),
                 _buildSecurityItem(
+                  context,
                   icon: Icons.cloud_upload,
                   iconColor: const Color(0xFFFFB74D),
                   title: 'Export My Data',
-                  trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
+                  trailing: Icon(Icons.chevron_right, color: isDark ? Colors.grey[500] : Colors.grey[400]),
                 ),
                 const SizedBox(height: 12),
                 _buildSecurityItem(
+                  context,
                   icon: Icons.shield,
-                  iconColor: Colors.grey[600]!,
+                  iconColor: isDark ? Colors.grey[400]! : Colors.grey[600]!,
                   title: 'Privacy Policy',
-                  trailing: Icon(Icons.chevron_right, color: Colors.grey[400]),
+                  trailing: Icon(Icons.chevron_right, color: isDark ? Colors.grey[500] : Colors.grey[400]),
                 ),
               ]),
               const SizedBox(height: 40),
@@ -214,7 +221,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.cardColor,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: const Text(
@@ -231,17 +238,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 16),
               Text(
                 'MoodJar v2.4.0 (Build 392)',
-                style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                style: TextStyle(color: isDark ? Colors.grey[600] : Colors.grey[400], fontSize: 12),
               ),
               const SizedBox(height: 32),
             ],
           ),
         ),
       ),
+      bottomNavigationBar: CustomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+      ),
     );
   }
 
-  Widget _buildSection(String title, List<Widget> children) {
+  Widget _buildSection(BuildContext context, String title, List<Widget> children) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -252,7 +265,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[500],
+              color: isDark ? Colors.grey[400] : Colors.grey[500],
               letterSpacing: 0.5,
             ),
           ),
@@ -260,7 +273,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -276,55 +289,97 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildAppearanceToggle() {
-    return Row(
-      children: [
-        _buildAppearanceButton(Icons.wb_sunny, 'Light', true),
-        const SizedBox(width: 8),
-        _buildAppearanceButton(Icons.nightlight_round, 'Dark', false),
-        const SizedBox(width: 8),
-        _buildAppearanceButton(Icons.brightness_auto, 'Auto', false),
-      ],
+  Widget _buildAppearanceToggle(BuildContext context) {
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return Row(
+          children: [
+            _buildAppearanceButton(
+              context,
+              Icons.wb_sunny,
+              'Light',
+              themeMode == ThemeMode.light,
+              () => context.read<ThemeCubit>().updateTheme(ThemeMode.light),
+            ),
+            const SizedBox(width: 8),
+            _buildAppearanceButton(
+              context,
+              Icons.nightlight_round,
+              'Dark',
+              themeMode == ThemeMode.dark,
+              () => context.read<ThemeCubit>().updateTheme(ThemeMode.dark),
+            ),
+            const SizedBox(width: 8),
+            _buildAppearanceButton(
+              context,
+              Icons.brightness_auto,
+              'Auto',
+              themeMode == ThemeMode.system,
+              () => context.read<ThemeCubit>().updateTheme(ThemeMode.system),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildAppearanceButton(IconData icon, String label, bool isSelected) {
+  Widget _buildAppearanceButton(
+    BuildContext context,
+    IconData icon,
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final selectedColor = isDark ? Colors.white : const Color(0xFF2D2D2D);
+    final unselectedColor = isDark ? Colors.grey[600] : Colors.grey[400];
+    final selectedBg = isDark ? Colors.grey[800] : Colors.grey[100];
+
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.grey[100] : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isSelected ? const Color(0xFF2D2D2D) : Colors.grey[400],
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                color: isSelected ? const Color(0xFF2D2D2D) : Colors.grey[400],
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? selectedBg : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: isSelected ? selectedColor : unselectedColor,
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isSelected ? selectedColor : unselectedColor,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildNotificationItem({
+  Widget _buildNotificationItem(
+    BuildContext context, {
     required IconData icon,
     required Color iconColor,
     required String title,
     required Widget trailing,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF2D2D2D));
+
     return Row(
       children: [
         Container(
@@ -339,9 +394,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: Color(0xFF2D2D2D),
+              color: textColor,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -351,12 +406,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSecurityItem({
+  Widget _buildSecurityItem(
+    BuildContext context, {
     required IconData icon,
     required Color iconColor,
     required String title,
     required Widget trailing,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : const Color(0xFF2D2D2D));
+
     return Row(
       children: [
         Container(
@@ -371,9 +431,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: Color(0xFF2D2D2D),
+              color: textColor,
               fontWeight: FontWeight.w500,
             ),
           ),
