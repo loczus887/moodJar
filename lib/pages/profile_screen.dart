@@ -27,7 +27,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _dailyReminder = prefs.getBool('daily_reminder') ?? true;
-      _appLock = prefs.getBool('app_lock') ?? false;
+      _appLock = prefs.getBool('app_lock_enabled') ?? false;
     });
   }
 
@@ -92,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             setState(() {
               _appLock = value;
             });
-            _saveSetting('app_lock', value);
+            _saveSetting('app_lock_enabled', value);
           }
         } catch (e) {
           if (mounted) {
