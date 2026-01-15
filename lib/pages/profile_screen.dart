@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:csv/csv.dart';
+import 'dart:io';
 import '../bloc/auth_bloc/auth_bloc.dart';
 import '../bloc/theme_cubit/theme_cubit.dart';
 import '../services/notification_service.dart';
@@ -17,6 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _dailyReminder = true;
   bool _appLock = false;
   TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
+  bool _isExporting = false;
   final LocalAuthentication auth = LocalAuthentication();
 
   @override
@@ -31,7 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     
     setState(() {
       _dailyReminder = prefs.getBool('daily_reminder') ?? true;
-      _appLock = prefs.getBool('app_lock') ?? false;
+      _appLock = prefs.getBool('app_lock_enabled') ?? false;
       
       if (reminderData != null) {
         _reminderTime = TimeOfDay(
@@ -118,7 +124,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Biometric authentication not available on this device.'),
+            content: Text(
+              'Biometric authentication not available on this device.',
+            ),
           ),
         );
       }
@@ -165,7 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             setState(() {
               _appLock = value;
             });
-            _saveSetting('app_lock', value);
+            _saveSetting('app_lock_enabled', value);
           }
         } catch (e) {
           if (mounted) {
@@ -178,13 +186,216 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _exportData(String userId) async {
+    setState(() {
+      _isExporting = true;
+    });
+
+    try {
+      // 1. Fetch data from Firestore
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('mood_logs')
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('No data to export.')));
+        }
+        setState(() {
+          _isExporting = false;
+        });
+        return;
+      }
+
+      // 2. Convert to CSV format
+      List<List<dynamic>> rows = [];
+      // Header row
+      rows.add([
+        "Date",
+        "Time",
+        "Mood Label",
+        "Mood Value",
+        "Note",
+        "Timestamp (ISO)",
+      ]);
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        final timestamp = data['timestamp'] as Timestamp?;
+        final date = timestamp?.toDate() ?? DateTime.now();
+
+        rows.add([
+          data['date_string'] ?? '',
+          "${date.hour}:${date.minute.toString().padLeft(2, '0')}",
+          data['mood_label'] ?? '',
+          data['mood_value'] ?? '',
+          data['note'] ?? '',
+          date.toIso8601String(),
+        ]);
+      }
+
+      String csvData = const ListToCsvConverter().convert(rows);
+
+      // 3. Save to temporary file
+      final directory = await getTemporaryDirectory();
+      final path = "${directory.path}/mood_jar_export.csv";
+      final file = File(path);
+      await file.writeAsString(csvData);
+
+      // 4. Share the file
+      if (mounted) {
+        await Share.shareXFiles([
+          XFile(path),
+        ], text: 'Here is my Mood Jar data export.');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isExporting = false;
+        });
+      }
+    }
+  }
+
+  void _showPrivacyPolicy(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+        final textColor = isDark ? Colors.white : const Color(0xFF2D2D2D);
+        final backgroundColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey[700] : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Privacy Policy',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Last Updated: October 2023',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _buildPolicySection(
+                        '1. Introduction',
+                        'Welcome to Mood Jar. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our application and tell you about your privacy rights and how the law protects you.',
+                        textColor,
+                      ),
+                      _buildPolicySection(
+                        '2. Data We Collect',
+                        'We may collect, use, store and transfer different kinds of personal data about you which we have grouped together follows:\n\n• Identity Data: includes first name, last name, username or similar identifier.\n• Contact Data: includes email address.\n• Usage Data: includes information about how you use our app, such as mood logs, notes, and timestamps.',
+                        textColor,
+                      ),
+                      _buildPolicySection(
+                        '3. How We Use Your Data',
+                        'We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:\n\n• To provide the mood tracking service.\n• To generate AI-powered insights (processed securely).\n• To manage your account and authentication.',
+                        textColor,
+                      ),
+                      _buildPolicySection(
+                        '4. Data Security',
+                        'We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used or accessed in an unauthorized way, altered or disclosed. In addition, we limit access to your personal data to those employees, agents, contractors and other third parties who have a business need to know.',
+                        textColor,
+                      ),
+                      _buildPolicySection(
+                        '5. Your Legal Rights',
+                        'Under certain circumstances, you have rights under data protection laws in relation to your personal data, including the right to request access, correction, erasure, restriction, transfer, to object to processing, to portability of data and (where the lawful ground of processing is consent) to withdraw consent.',
+                        textColor,
+                      ),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPolicySection(String title, String content, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            content,
+            style: TextStyle(
+              fontSize: 14,
+              color: textColor.withOpacity(0.8),
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
     String userEmail = 'Guest';
+    String userId = '';
 
     if (authState is Authenticated) {
       userEmail = authState.user.email ?? 'Anonymous';
+      userId = authState.user.uid;
     }
 
     final theme = Theme.of(context);
@@ -401,25 +612,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   trailing: _buildSwitch(context, _appLock, _toggleAppLock),
                 ),
                 const SizedBox(height: 12),
-                _buildSecurityItem(
-                  context,
-                  icon: Icons.cloud_upload,
-                  iconColor: const Color(0xFFFFB74D),
-                  title: 'Export My Data',
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    color: isDark ? Colors.grey[500] : Colors.grey[400],
+                GestureDetector(
+                  onTap: () {
+                    if (userId.isNotEmpty && !_isExporting) {
+                      _exportData(userId);
+                    }
+                  },
+                  child: _buildSecurityItem(
+                    context,
+                    icon: Icons.cloud_upload,
+                    iconColor: const Color(0xFFFFB74D),
+                    title: 'Export My Data',
+                    trailing: _isExporting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            Icons.chevron_right,
+                            color: isDark ? Colors.grey[500] : Colors.grey[400],
+                          ),
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildSecurityItem(
-                  context,
-                  icon: Icons.shield,
-                  iconColor: isDark ? Colors.grey[400]! : Colors.grey[600]!,
-                  title: 'Privacy Policy',
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    color: isDark ? Colors.grey[500] : Colors.grey[400],
+                GestureDetector(
+                  onTap: () => _showPrivacyPolicy(context),
+                  child: _buildSecurityItem(
+                    context,
+                    icon: Icons.shield,
+                    iconColor: isDark ? Colors.grey[400]! : Colors.grey[600]!,
+                    title: 'Privacy Policy',
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: isDark ? Colors.grey[500] : Colors.grey[400],
+                    ),
                   ),
                 ),
               ]),
