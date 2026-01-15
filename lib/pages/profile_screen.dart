@@ -9,6 +9,7 @@ import 'package:csv/csv.dart';
 import 'dart:io';
 import '../bloc/auth_bloc/auth_bloc.dart';
 import '../bloc/theme_cubit/theme_cubit.dart';
+import '../services/notification_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -20,6 +21,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _dailyReminder = true;
   bool _appLock = false;
+  TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
   bool _isExporting = false;
   final LocalAuthentication auth = LocalAuthentication();
 
@@ -31,15 +33,86 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    final reminderData = await NotificationService().getReminderTime();
+    
     setState(() {
       _dailyReminder = prefs.getBool('daily_reminder') ?? true;
       _appLock = prefs.getBool('app_lock_enabled') ?? false;
+      
+      if (reminderData != null) {
+        _reminderTime = TimeOfDay(
+          hour: reminderData['hour']!,
+          minute: reminderData['minute']!,
+        );
+      }
     });
+
+    if (_dailyReminder && reminderData == null) {
+      await NotificationService().scheduleDailyReminder(
+        _reminderTime.hour,
+        _reminderTime.minute,
+      );
+    }
   }
 
   Future<void> _saveSetting(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
+  }
+
+  Future<void> _toggleDailyReminder(bool value) async {
+    setState(() {
+      _dailyReminder = value;
+    });
+    await _saveSetting('daily_reminder', value);
+
+    if (value) {
+      await NotificationService().scheduleDailyReminder(
+        _reminderTime.hour,
+        _reminderTime.minute,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Daily reminder enabled')),
+        );
+      }
+    } else {
+      await NotificationService().cancelDailyReminder();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Daily reminder disabled')),
+        );
+      }
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _reminderTime,
+    );
+
+    if (picked != null && picked != _reminderTime) {
+      setState(() {
+        _reminderTime = picked;
+      });
+
+      if (_dailyReminder) {
+        await NotificationService().scheduleDailyReminder(
+          picked.hour,
+          picked.minute,
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Reminder time updated to ${picked.format(context)}',
+              ),
+            ),
+          );
+        }
+      }
+    }
   }
 
   Future<void> _toggleAppLock(bool value) async {
@@ -376,18 +449,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             shape: BoxShape.circle,
                             color: isDark ? Colors.grey[800] : Colors.grey[200],
                           ),
-                          child: ClipOval(
-                            child: Image.asset(
-                              'assets/avatar.png',
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.person,
-                                  size: 40,
-                                  color: iconColor,
-                                );
-                              },
-                            ),
+                          child: Icon(
+                            Icons.person,
+                            size: 40,
+                            color: iconColor,
                           ),
                         ),
                         Positioned(
@@ -466,12 +531,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: Icons.notifications,
                   iconColor: const Color(0xFFB39DDB),
                   title: 'Daily Reminder',
-                  trailing: _buildSwitch(context, _dailyReminder, (val) {
-                    setState(() {
-                      _dailyReminder = val;
-                    });
-                    _saveSetting('daily_reminder', val);
-                  }),
+                  trailing: _buildSwitch(context, _dailyReminder, _toggleDailyReminder),
                 ),
                 const SizedBox(height: 12),
                 _buildNotificationItem(
@@ -479,18 +539,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: Icons.access_time,
                   iconColor: const Color(0xFF64B5F6),
                   title: 'Time',
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                  trailing: GestureDetector(
+                    onTap: _selectTime,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.grey[800] : Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        _reminderTime.format(context),
+                        style: TextStyle(fontSize: 14, color: textColor),
+                      ),
                     ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () async {
+                    await NotificationService().showInstantNotification(
+                      '🔔 Time to log your mood! 🌟',
+                      'How are you feeling today? Take a moment to reflect.',
+                    );
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Test notification sent!')),
+                      );
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.grey[800] : Colors.grey[100],
+                      color: const Color(0xFFB39DDB).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFB39DDB),
+                        width: 1,
+                      ),
                     ),
-                    child: Text(
-                      '08:00 PM',
-                      style: TextStyle(fontSize: 14, color: textColor),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.notifications_active,
+                          color: isDark ? Colors.white : const Color(0xFF2D2D2D),
+                          size: 15,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Test Notification',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : const Color(0xFF2D2D2D),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -502,9 +609,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: Icons.lock,
                   iconColor: const Color(0xFF81C784),
                   title: 'App Lock',
-                  trailing: _buildSwitch(context, _appLock, (val) {
-                    _toggleAppLock(val);
-                  }),
+                  trailing: _buildSwitch(context, _appLock, _toggleAppLock),
                 ),
                 const SizedBox(height: 12),
                 GestureDetector(
