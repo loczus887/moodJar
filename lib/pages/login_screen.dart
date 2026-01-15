@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app/bloc/auth_bloc/auth_bloc.dart';
+import '../data/repositories/auth_repository.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,9 +13,11 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool isLogin = true;
   bool _obscurePassword = true;
+  bool _isProcessing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -50,12 +53,15 @@ class _LoginScreenState extends State<LoginScreen> {
         child: BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
             if (state is AuthError) {
+              setState(() => _isProcessing = false);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.message),
                   backgroundColor: Colors.red,
                 ),
               );
+            } else if (state is Authenticated && !isLogin && _isProcessing) {
+              _setDisplayName();
             }
           },
           child: SafeArea(
@@ -246,6 +252,56 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
+                      if (!isLogin) ...[
+                        Container(
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.grey[800]
+                                : Colors.white.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: TextFormField(
+                            controller: _usernameController,
+                            style: TextStyle(color: textColor),
+                            decoration: InputDecoration(
+                              hintText: 'Username',
+                              hintStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.grey[500]
+                                    : Colors.grey[400],
+                              ),
+                              prefixIcon: Icon(
+                                Icons.account_circle_outlined,
+                                color: isDark
+                                    ? Colors.grey[500]
+                                    : Colors.grey[400],
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 18,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Enter a username';
+                              }
+                              if (value.length < 3) {
+                                return 'Username must be at least 3 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       Container(
                         decoration: BoxDecoration(
                           color: isDark
@@ -362,7 +418,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 32),
                       BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, state) {
-                          if (state is AuthLoading) {
+                          if (state is AuthLoading || _isProcessing) {
                             return Container(
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(vertical: 18),
@@ -378,16 +434,17 @@ class _LoginScreenState extends State<LoginScreen> {
                             );
                           }
                           return GestureDetector(
-                            onTap: () {
+                            onTap: () async {
                               if (_formKey.currentState!.validate()) {
                                 final email = _emailController.text.trim();
-                                final password = _passwordController.text
-                                    .trim();
+                                final password = _passwordController.text.trim();
+                                
                                 if (isLogin) {
                                   context.read<AuthBloc>().add(
                                     AuthLoginRequested(email, password),
                                   );
                                 } else {
+                                  setState(() => _isProcessing = true);
                                   context.read<AuthBloc>().add(
                                     AuthSignUpRequested(email, password),
                                   );
@@ -512,5 +569,26 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _setDisplayName() async {
+    try {
+      final username = _usernameController.text.trim();
+      await context.read<AuthRepository>().updateDisplayName(username);
+      
+      await Future.delayed(const Duration(milliseconds: 300));
+      
+      if (mounted) {
+        context.read<AuthBloc>().add(AuthCheckRequested());
+        setState(() => _isProcessing = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error setting username: $e')),
+        );
+      }
+    }
   }
 }

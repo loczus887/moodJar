@@ -4,7 +4,6 @@ import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'profile_screen.dart';
 import 'log_mood.dart';
-import 'history_page.dart';
 import 'insights_page.dart';
 import '../widgets/custom_navigation_bar.dart';
 

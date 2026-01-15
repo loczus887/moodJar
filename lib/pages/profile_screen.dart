@@ -10,6 +10,8 @@ import 'dart:io';
 import '../bloc/auth_bloc/auth_bloc.dart';
 import '../bloc/theme_cubit/theme_cubit.dart';
 import '../services/notification_service.dart';
+import 'edit_profile_screen.dart';
+import 'change_password_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -192,7 +194,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     try {
-      // 1. Fetch data from Firestore
       final querySnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
@@ -212,9 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return;
       }
 
-      // 2. Convert to CSV format
       List<List<dynamic>> rows = [];
-      // Header row
       rows.add([
         "Date",
         "Time",
@@ -241,13 +240,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       String csvData = const ListToCsvConverter().convert(rows);
 
-      // 3. Save to temporary file
       final directory = await getTemporaryDirectory();
       final path = "${directory.path}/mood_jar_export.csv";
       final file = File(path);
       await file.writeAsString(csvData);
 
-      // 4. Share the file
       if (mounted) {
         await Share.shareXFiles([
           XFile(path),
@@ -324,27 +321,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 24),
                       _buildPolicySection(
                         '1. Introduction',
-                        'Welcome to Mood Jar. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our application and tell you about your privacy rights and how the law protects you.',
+                        'Welcome to Mood Jar. We respect your privacy and are committed to protecting your personal data.',
                         textColor,
                       ),
                       _buildPolicySection(
                         '2. Data We Collect',
-                        'We may collect, use, store and transfer different kinds of personal data about you which we have grouped together follows:\n\n• Identity Data: includes first name, last name, username or similar identifier.\n• Contact Data: includes email address.\n• Usage Data: includes information about how you use our app, such as mood logs, notes, and timestamps.',
+                        'Identity Data, Contact Data, Usage Data.',
                         textColor,
                       ),
                       _buildPolicySection(
                         '3. How We Use Your Data',
-                        'We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:\n\n• To provide the mood tracking service.\n• To generate AI-powered insights (processed securely).\n• To manage your account and authentication.',
-                        textColor,
-                      ),
-                      _buildPolicySection(
-                        '4. Data Security',
-                        'We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used or accessed in an unauthorized way, altered or disclosed. In addition, we limit access to your personal data to those employees, agents, contractors and other third parties who have a business need to know.',
-                        textColor,
-                      ),
-                      _buildPolicySection(
-                        '5. Your Legal Rights',
-                        'Under certain circumstances, you have rights under data protection laws in relation to your personal data, including the right to request access, correction, erasure, restriction, transfer, to object to processing, to portability of data and (where the lawful ground of processing is consent) to withdraw consent.',
+                        'To provide the mood tracking service and generate AI-powered insights.',
                         textColor,
                       ),
                       const SizedBox(height: 40),
@@ -391,10 +378,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
     String userEmail = 'Guest';
+    String userName = 'User';
+    String? userPhotoURL;
     String userId = '';
 
     if (authState is Authenticated) {
       userEmail = authState.user.email ?? 'Anonymous';
+      userName = authState.user.displayName ?? userEmail.split('@')[0];
+      userPhotoURL = authState.user.photoURL;
       userId = authState.user.uid;
     }
 
@@ -425,102 +416,142 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+              GestureDetector(
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditProfileScreen(),
                     ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Stack(
-                      children: [
-                        Container(
-                          width: 70,
-                          height: 70,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isDark ? Colors.grey[800] : Colors.grey[200],
-                          ),
-                          child: Icon(
-                            Icons.person,
-                            size: 40,
-                            color: iconColor,
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFB39DDB),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: theme.cardColor,
-                                width: 2,
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.edit,
-                              size: 14,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  );
+                  if (result == true) {
+                    setState(() {});
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Stack(
                         children: [
-                          Text(
-                            'Jamie Doe',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: textColor,
+                          Container(
+                            width: 70,
+                            height: 70,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isDark ? Colors.grey[800] : Colors.grey[200],
+                              image: userPhotoURL != null && userPhotoURL.isNotEmpty
+                                  ? DecorationImage(
+                                      image: FileImage(File(userPhotoURL)),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
                             ),
+                            child: userPhotoURL == null || userPhotoURL.isEmpty
+                                ? Icon(Icons.person, size: 40, color: iconColor)
+                                : null,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            userEmail,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark
-                                  ? Colors.grey[400]
-                                  : Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Pro Member',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark
-                                  ? Colors.grey[500]
-                                  : Colors.grey[400],
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFB39DDB),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: theme.cardColor,
+                                  width: 2,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.edit,
+                                size: 14,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    Icon(
-                      Icons.chevron_right,
-                      color: isDark ? Colors.grey[500] : Colors.grey[400],
-                    ),
-                  ],
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              userName,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              userEmail,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDark
+                                    ? Colors.grey[400]
+                                    : Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Pro Member',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark
+                                    ? Colors.grey[500]
+                                    : Colors.grey[400],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        color: isDark ? Colors.grey[500] : Colors.grey[400],
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
+              _buildSection(context, 'ACCOUNT', [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ChangePasswordScreen(),
+                      ),
+                    );
+                  },
+                  child: _buildSecurityItem(
+                    context,
+                    icon: Icons.lock_reset,
+                    iconColor: const Color(0xFFFF9800),
+                    title: 'Change Password',
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: isDark ? Colors.grey[500] : Colors.grey[400],
+                    ),
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 24),
               _buildSection(context, 'APPEARANCE', [
                 _buildAppearanceToggle(context),
               ]),

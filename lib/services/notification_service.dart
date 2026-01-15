@@ -50,12 +50,11 @@ class NotificationService {
         AndroidFlutterLocalNotificationsPlugin>();
     
     if (androidImplementation != null) {
-      final bool? exactAlarmGranted = await androidImplementation.requestExactAlarmsPermission();
+      await androidImplementation.requestExactAlarmsPermission();
     }
   }
 
   Future<void> scheduleDailyReminder(int hour, int minute) async {
-    // Sprawdź uprawnienia przed schedulowaniem
     final androidImplementation = _notifications.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     
