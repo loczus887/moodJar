@@ -278,7 +278,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     : Colors.grey[400],
                               ),
                               prefixIcon: Icon(
-                                Icons.account_circle_outlined,
+                                Icons.person_outline,
                                 color: isDark
                                     ? Colors.grey[500]
                                     : Colors.grey[400],
@@ -289,15 +289,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 vertical: 18,
                               ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Enter a username';
-                              }
-                              if (value.length < 3) {
-                                return 'Username must be at least 3 characters';
-                              }
-                              return null;
-                            },
+                            validator: (value) =>
+                                value!.isEmpty ? 'Enter a username' : null,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -504,50 +497,53 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.grey[800]
-                              : Colors.white.withOpacity(0.7),
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF2D2D2D),
-                                shape: BoxShape.circle,
+                      GestureDetector(
+                        onTap: () => context.read<AuthBloc>().add(AuthGoogleSignInRequested()),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.grey[800]
+                                : Colors.white.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
-                              child: Icon(
-                                Icons.g_mobiledata,
-                                color: isDark
-                                    ? const Color(0xFF2D2D2D)
-                                    : Colors.white,
-                                size: 24,
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF2D2D2D),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.g_mobiledata,
+                                  color: isDark
+                                      ? const Color(0xFF2D2D2D)
+                                      : Colors.white,
+                                  size: 24,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Google',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: textColor,
+                              const SizedBox(width: 12),
+                              Text(
+                                'Google',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: textColor,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 32),

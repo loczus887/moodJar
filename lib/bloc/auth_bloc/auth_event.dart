@@ -10,6 +10,8 @@ abstract class AuthEvent extends Equatable {
 /// At the start, checking if the user is already connected
 class AuthCheckRequested extends AuthEvent {}
 
+class AuthGoogleSignInRequested extends AuthEvent {}
+
 /// User presses the login button
 class AuthLoginRequested extends AuthEvent {
   final String email;
