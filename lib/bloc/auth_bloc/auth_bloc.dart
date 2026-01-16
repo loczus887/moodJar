@@ -12,7 +12,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
 
   AuthBloc({required this.authRepository}) : super(AuthInitial()) {
-    // heck Auth Status on Start
+    // Check Auth Status on Start
     on<AuthCheckRequested>((event, emit) async {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
@@ -58,15 +58,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
     });
 
+    // Google Sign In
     on<AuthGoogleSignInRequested>((event, emit) async {
-  emit(AuthLoading());
-  try {
-    await authRepository.signInWithGoogle();
-  } catch (e) {
-    emit(AuthError(e.toString()));
-    emit(Unauthenticated());
-  }
-});
+      emit(AuthLoading());
+      try {
+        await authRepository.signInWithGoogle();
+      } catch (e) {
+        emit(AuthError(e.toString()));
+        emit(Unauthenticated());
+      }
+    });
 
     // Logout
     on<AuthLogoutRequested>((event, emit) async {

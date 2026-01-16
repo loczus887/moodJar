@@ -677,6 +677,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           },
           backgroundColor: const Color(0xFFB39DDB),
           elevation: 8,
+
           child: const Icon(Icons.add, size: 32),
         ),
       ),
