@@ -36,11 +36,11 @@ class CustomNavigationBar extends StatelessWidget {
         elevation: 0,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.home_rounded),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
+            icon: Icon(Icons.calendar_month_rounded),
             label: 'History',
           ),
           BottomNavigationBarItem(
@@ -48,11 +48,11 @@ class CustomNavigationBar extends StatelessWidget {
             label: '',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.insights),
+            icon: Icon(Icons.bar_chart_rounded),
             label: 'Insights',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
+            icon: Icon(Icons.settings_rounded),
             label: 'Settings',
           ),
         ],
