@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth_bloc/auth_bloc.dart';
 import '../widgets/mood_line_chart.dart';
 import 'package:intl/intl.dart';
+import '../widgets/quote_card.dart';
 
 class InsightsPage extends StatelessWidget {
   const InsightsPage({super.key});
@@ -25,31 +26,38 @@ class InsightsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: backgroundColor,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 20),
-              Text(
-                DateFormat('EEEE, MMM d').format(DateTime.now()),
-                style: TextStyle(
-                  color: subTextColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+        child: SingleChildScrollView( // <--- Das hier macht die Seite scrollbar
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                Text(
+                  DateFormat('EEEE, MMM d').format(DateTime.now()),
+                  style: TextStyle(
+                    color: subTextColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
-              ),
-              Text(
-                "Weekly Overview👋",
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
+                Text(
+                  "Weekly Overview👋",
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              SizedBox(height: 350, child: MoodBarChart(userId: userId)),
-            ],
+                const SizedBox(height: 30),
+                
+                SizedBox(height: 350, child: MoodBarChart(userId: userId)),
+
+                const QuoteCard(), 
+                
+                const SizedBox(height: 30), 
+              ],
+            ),
           ),
         ),
       ),
