@@ -283,6 +283,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _checkAuthAndNavigateToHistory();
       return;
     }
+    if (index == 3) {
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation1, animation2) =>
+              const InsightsPage(),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ),
+      );
+      return;
+    }
     setState(() {
       _selectedIndex = index;
     });
@@ -479,9 +491,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   label: 'Insights',
                   color: const Color(0xFF81C784),
                   onTap: () {
-                    setState(() {
-                      _selectedIndex = 3;
-                    });
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation1, animation2) =>
+                            const InsightsPage(),
+                        transitionDuration: Duration.zero,
+                        reverseTransitionDuration: Duration.zero,
+                      ),
+                    );
                   },
                 ),
                 const SizedBox(width: 16),
@@ -718,20 +736,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         theme.iconTheme.color ??
         (isDark ? Colors.white : const Color(0xFF2D2D2D));
 
-    Widget bodyContent;
-    switch (_selectedIndex) {
-      case 0:
-        bodyContent = _buildHomeContent(theme, isDark, textColor, iconColor);
-        break;
-      case 1:
-        bodyContent = const SizedBox();
-        break;
-      case 3:
-        bodyContent = const InsightsPage();
-        break;
-      default:
-        bodyContent = _buildHomeContent(theme, isDark, textColor, iconColor);
-    }
+    Widget bodyContent = _buildHomeContent(theme, isDark, textColor, iconColor);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
