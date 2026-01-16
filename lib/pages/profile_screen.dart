@@ -308,6 +308,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               const SizedBox(height: 16),
+              
+              // Profile Header
               GestureDetector(
                 onTap: () async {
                   final result = await Navigator.push(
@@ -421,6 +423,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 32),
+              
+              // Account Section
               _buildSection(context, 'ACCOUNT', [
                 GestureDetector(
                   onTap: () {
@@ -444,10 +448,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ]),
               const SizedBox(height: 24),
+              
+              // Appearance Section
               _buildSection(context, 'APPEARANCE', [
                 _buildAppearanceToggle(context),
               ]),
               const SizedBox(height: 24),
+              
+              // Notifications Section
               _buildSection(context, 'NOTIFICATIONS', [
                 _buildNotificationItem(
                   context,
@@ -526,6 +534,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ]),
               const SizedBox(height: 24),
+              
+              // Security & Data Section
               _buildSection(context, 'SECURITY & DATA', [
                 _buildSecurityItem(
                   context,
@@ -581,6 +591,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ]),
               const SizedBox(height: 40),
+              
+              // Logout Button
               GestureDetector(
                 onTap: () {
                   context.read<AuthBloc>().add(AuthLogoutRequested());

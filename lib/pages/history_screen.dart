@@ -37,7 +37,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  // --- STATE VARIABLES FOR DAILY SUMMARY AI ---
+  // AI Daily Summary State
   bool _isGeneratingDaily = false;
   String? _dailyAiQuote;
   final GeminiRepository _geminiRepository = GeminiRepository();
@@ -78,7 +78,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     await prefs.setString('mood_quotes_cache', jsonEncode(_moodQuotesCache));
   }
 
-  // --- FUNCTION FOR DAILY AI ---
+  // Daily AI Insight Generation
   Future<void> _generateDailyInsight(
     List<QueryDocumentSnapshot> dailyMoods,
     String userId,
@@ -226,7 +226,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  // --- SIMPLE CIRCLE WIDGET ---
+  // Simple Circle Widget
   Widget _buildSimpleMoodCircle({
     required String text,
     required Color color,
@@ -282,7 +282,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  // --- UPDATED BOTTOM SHEET WITH AI SECTION ---
+  // Bottom Sheet with AI Section
   void _showMoodDetails(
     BuildContext context,
     String label,
@@ -461,7 +461,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                   const SizedBox(height: 20),
 
-                  // --- NEW SECTION: AI MOOD INSIGHT ---
+                  // AI Mood Insight Block
                   if (_isApiAvailable || moodAiQuote != null)
                     Container(
                       width: double.infinity,
@@ -861,7 +861,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
                 const SizedBox(height: 24),
 
-                // 5. --- NEW SECTION: DAILY AI WISDOM (DAILY SUMMARY) ---
+                // 5. Daily AI Wisdom (Daily Summary)
                 // Only appears if there are moods logged for this day AND API is available
                 if (moodsForSelectedDay.isNotEmpty && _isApiAvailable)
                   Container(

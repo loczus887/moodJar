@@ -93,6 +93,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 color: const Color(0xFFB39DDB),
               ),
               const SizedBox(height: 40),
+              
+              // Current Password
               _buildPasswordField(
                 controller: _currentPasswordController,
                 label: 'Current Password',
@@ -106,6 +108,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 },
               ),
               const SizedBox(height: 16),
+              
+              // New Password
               _buildPasswordField(
                 controller: _newPasswordController,
                 label: 'New Password',
@@ -122,6 +126,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 },
               ),
               const SizedBox(height: 16),
+              
+              // Confirm Password
               _buildPasswordField(
                 controller: _confirmPasswordController,
                 label: 'Confirm New Password',
@@ -138,6 +144,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 },
               ),
               const SizedBox(height: 40),
+              
+              // Submit Button
               SizedBox(
                 width: double.infinity,
                 height: 56,

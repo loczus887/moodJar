@@ -120,6 +120,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Column(
           children: [
             const SizedBox(height: 20),
+            
+            // Profile Image Picker
             GestureDetector(
               onTap: _pickImage,
               child: Stack(
@@ -163,6 +165,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             const SizedBox(height: 40),
+            
+            // Name Field
             Container(
               decoration: BoxDecoration(
                 color: theme.cardColor,
@@ -186,6 +190,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             const SizedBox(height: 40),
+            
+            // Save Button
             SizedBox(
               width: double.infinity,
               height: 56,

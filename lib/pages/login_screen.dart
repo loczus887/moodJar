@@ -73,6 +73,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     children: [
                       const SizedBox(height: 60),
+                      
+                      // Logo Section
                       Stack(
                         clipBehavior: Clip.none,
                         children: [
@@ -140,6 +142,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 48),
+                      
+                      // Toggle Login/Signup
                       Container(
                         decoration: BoxDecoration(
                           color: isDark
@@ -252,6 +256,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
+                      
+                      // Form Fields
                       if (!isLogin) ...[
                         Container(
                           decoration: BoxDecoration(
@@ -409,6 +415,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                       const SizedBox(height: 32),
+                      
+                      // Submit Button
                       BlocBuilder<AuthBloc, AuthState>(
                         builder: (context, state) {
                           if (state is AuthLoading || _isProcessing) {
@@ -489,6 +497,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ),
                       const SizedBox(height: 32),
+                      
+                      // Social Login
                       Text(
                         'Or continue with',
                         style: TextStyle(

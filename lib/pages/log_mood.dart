@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Necessary for saving to DB
-import '../bloc/auth_bloc/auth_bloc.dart'; // The correct path based on your image structure
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../bloc/auth_bloc/auth_bloc.dart';
 
 class LogMoodScreen extends StatefulWidget {
   const LogMoodScreen({super.key});
@@ -16,10 +16,10 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
   final TextEditingController _journalController = TextEditingController();
   bool _isSaving = false;
 
-  // Colors extracted from your HTML (Tailwind Config)
+  // UI Colors
   final Color _primaryColor = const Color(0xFFC7C8F0);
 
-  // Data list to facilitate UI construction and Firebase submission
+  // Mood Data Configuration
   final List<Map<String, dynamic>> _moods = [
     {
       'label': 'Happy',
@@ -77,7 +77,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
     super.dispose();
   }
 
-  // Logic to Save to Firebase
+  // Firebase Submission Logic
   Future<void> _saveMoodToFirebase() async {
     final authState = context.read<AuthBloc>().state;
 
@@ -88,7 +88,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
         final userId = authState.user.uid;
         final selectedMoodData = _moods[_selectedMoodIndex];
 
-        // Creates the structure for the future Statistical Chart
+        // Prepare data for statistics
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userId)
@@ -96,19 +96,17 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
             .add({
               'mood_label': selectedMoodData['label'],
               'mood_value': selectedMoodData['value'],
-              // Useful for numeric charts (1 to 5)
               'note': _journalController.text.trim(),
               'timestamp': FieldValue.serverTimestamp(),
-              // Exact date for sorting in the calendar
+              // Date string for grouping
               'date_string': DateTime.now().toIso8601String().split('T')[0],
-              // "2023-10-24" for easy grouping
             });
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Mood logged successfully!')),
           );
-          Navigator.pop(context); // Returns to the previous page
+          Navigator.pop(context);
         }
       } catch (e) {
         if (mounted) {
@@ -171,8 +169,8 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
                     // Text Box (Journal)
                     _buildJournalInput(surfaceColor, textMain, textMuted),
 
-                    const SizedBox(height: 100),
                     // Space so the floating button doesn't cover content
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
@@ -180,7 +178,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
           ],
         ),
       ),
-      // Floating Button (Fixed Bottom in HTML)
+      // Floating Action Button
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -237,7 +235,6 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
           Column(
             children: [
               Text(
-                // You can use the 'intl' package to format the real date here
                 'TODAY',
                 style: TextStyle(
                   color: textMuted,
@@ -248,30 +245,28 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
               ),
             ],
           ),
-          const SizedBox(width: 40), // Invisible spacer to center the text
+          // Invisible spacer to center the text
+          const SizedBox(width: 40),
         ],
       ),
     );
   }
 
-  // Nova Grelha com Scroll Horizontal
+  // Horizontal Scroll Grid
   Widget _buildMoodGrid(Color surfaceColor, Color textMain) {
-    // SizedBox define a altura da área de scroll.
-    // 380px é suficiente para caber 2 linhas de cartões + espaços
+    // Fixed height for scroll area
     return SizedBox(
       height: 380,
       child: GridView.builder(
         scrollDirection: Axis.horizontal,
-        // Faz o scroll para a direita
+        // Vertical padding for shadow
         padding: const EdgeInsets.symmetric(vertical: 10),
-        // Espaço em cima e em baixo para a sombra não cortar
         itemCount: _moods.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // 2 Linhas
-          mainAxisSpacing: 16, // Espaço entre colunas (horizontal)
-          crossAxisSpacing: 16, // Espaço entre linhas (vertical)
-          childAspectRatio:
-              1.1, // Controla a "magreza" do cartão (Altura vs Largura)
+          crossAxisCount: 2, // 2 Rows
+          mainAxisSpacing: 16, // Horizontal spacing
+          crossAxisSpacing: 16, // Vertical spacing
+          childAspectRatio: 1.1, // Card aspect ratio
         ),
         itemBuilder: (context, index) {
           return _buildMoodCard(index, surfaceColor, textMain);
@@ -280,7 +275,7 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
     );
   }
 
-  // O Design do Cartão (Simplificado para funcionar na grelha)
+  // Mood Card Design
   Widget _buildMoodCard(int index, Color surfaceColor, Color textMain) {
     final bool isSelected = _selectedMoodIndex == index;
     final mood = _moods[index];
@@ -312,7 +307,6 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
           children: [
             Container(
               height: 60,
-              // Ajustei o tamanho para caber bem na grelha horizontal
               width: double.infinity,
               decoration: BoxDecoration(
                 color: mood['color'],
@@ -346,9 +340,8 @@ class _LogMoodScreenState extends State<LogMoodScreen> {
                 child: const Icon(Icons.check, size: 12, color: Colors.black),
               )
             else
-              const SizedBox(
-                height: 16,
-              ), // Espaço vazio para manter alinhamento
+              // Spacer for alignment
+              const SizedBox(height: 16),
           ],
         ),
       ),
