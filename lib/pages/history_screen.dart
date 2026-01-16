@@ -802,6 +802,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // 1. Calendar
                 Container(
                   margin: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -824,6 +825,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       setState(() {
                         _selectedDay = selectedDay;
                         _focusedDay = focusedDay;
+                        // Reset daily AI when day changes
                         _dailyAiQuote = null;
                         _isGeneratingDaily = false;
                       });
@@ -903,6 +905,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                   ),
                 ),
+
+                // 2. Stats
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -931,7 +935,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 24),
+
+                // 3. Header List
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -952,7 +959,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 12),
+
+                // 4. Horizontal List
                 if (moodsForSelectedDay.isEmpty)
                   Padding(
                     padding: const EdgeInsets.all(20.0),
@@ -992,7 +1002,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       },
                     ),
                   ),
+
                 const SizedBox(height: 24),
+
+                // 5. Daily AI Wisdom (Daily Summary)
+                // Only appears if there are moods logged for this day AND API is available
                 if (moodsForSelectedDay.isNotEmpty && _isApiAvailable)
                   Container(
                     margin: const EdgeInsets.symmetric(
@@ -1031,6 +1045,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
+
+                        // Logic: If loading -> Line; If text -> Show text; Else -> Button
                         if (_isGeneratingDaily)
                           Padding(
                             padding: const EdgeInsets.symmetric(
@@ -1080,6 +1096,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ],
                     ),
                   ),
+
                 const SizedBox(height: 80),
               ],
             ),
@@ -1108,6 +1125,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  // Helper to build calendar cell column
   Widget _buildCalendarCell(
     DateTime day,
     Color color, {
@@ -1181,6 +1199,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  // Card with tap gesture
   Widget _buildDailyMoodCard(
     String label,
     String time,
