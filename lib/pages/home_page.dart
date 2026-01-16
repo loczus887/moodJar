@@ -10,6 +10,10 @@ import 'log_mood.dart';
 import 'insights_page.dart';
 import '../widgets/custom_navigation_bar.dart';
 import '../bloc/auth_bloc/auth_bloc.dart';
+import '../widgets/home_page/home_header.dart';
+import '../widgets/home_page/mood_tracking_card.dart';
+import '../widgets/home_page/quick_actions_section.dart';
+import '../widgets/home_page/wellness_tips_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -305,447 +309,69 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
-  Widget _buildHomeContent(
-    ThemeData theme,
-    bool isDark,
-    Color textColor,
-    Color iconColor,
-  ) {
-    final authState = context.watch<AuthBloc>().state;
-    String userName = 'Friend';
-    if (authState is Authenticated) {
-      userName = authState.user.displayName?.split(' ')[0] ?? 'Friend';
-    }
-
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with greeting and profile
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Hello, $userName!',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'How are you feeling today?',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ProfileScreen(),
-                      ),
-                    ).then((_) => _loadAppLockPreference());
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFFB39DDB),
-                        width: 2,
-                      ),
-                    ),
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: theme.cardColor,
-                      child: Icon(Icons.person, color: iconColor),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Main mood tracking card
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF4A148C), const Color(0xFF7B1FA2)]
-                    : [const Color(0xFFB39DDB), const Color(0xFF9575CD)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF7B1FA2).withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Track Your Mood',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Keep track of your daily emotions and understand yourself better.',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LogMoodScreen(),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF7B1FA2),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                        ),
-                        child: const Text('Log Mood'),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.spa, size: 48, color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Quick actions section
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Text(
-              'Quick Actions',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: textColor,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          SizedBox(
-            height: 120,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              children: [
-                _buildQuickActionCard(
-                  theme,
-                  icon: Icons.history,
-                  label: 'History',
-                  color: const Color(0xFF64B5F6),
-                  onTap: _checkAuthAndNavigateToHistory,
-                ),
-                const SizedBox(width: 16),
-                _buildQuickActionCard(
-                  theme,
-                  icon: Icons.insights,
-                  label: 'Insights',
-                  color: const Color(0xFF81C784),
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation1, animation2) =>
-                            const InsightsPage(),
-                        transitionDuration: Duration.zero,
-                        reverseTransitionDuration: Duration.zero,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(width: 16),
-                _buildQuickActionCard(
-                  theme,
-                  icon: Icons.settings,
-                  label: 'Settings',
-                  color: const Color(0xFFFFB74D),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ProfileScreen(),
-                      ),
-                    ).then((_) => _loadAppLockPreference());
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Wellness tip with swipeable cards
-          if (_wellnessTips.isNotEmpty)
-            Container(
-              height: 240,
-              margin: const EdgeInsets.symmetric(horizontal: 24),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      _wellnessTips[_currentTipIndex]['color'].withOpacity(
-                        0.15,
-                      ),
-                      _wellnessTips[_currentTipIndex]['color'].withOpacity(
-                        0.05,
-                      ),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: _wellnessTips[_currentTipIndex]['color'].withOpacity(
-                      0.3,
-                    ),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _wellnessTips[_currentTipIndex]['color']
-                          .withOpacity(0.05),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: PageView.builder(
-                        controller: _pageController,
-                        itemCount: _wellnessTips.length,
-                        onPageChanged: (index) {
-                          setState(() {
-                            _currentTipIndex = index;
-                          });
-                          _saveTipIndex(index);
-                        },
-                        itemBuilder: (context, index) {
-                          final tip = _wellnessTips[index];
-                          return Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: tip['color'].withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Icon(
-                                        tip['icon'],
-                                        color: tip['color'],
-                                        size: 28,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Wellness Tip',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: isDark
-                                                  ? Colors.grey[400]
-                                                  : Colors.grey[600],
-                                              fontWeight: FontWeight.w500,
-                                              letterSpacing: 0.5,
-                                            ),
-                                          ),
-                                          Text(
-                                            tip['category'],
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: textColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                Expanded(
-                                  child: Text(
-                                    tip['tip'],
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      height: 1.5,
-                                      color: textColor.withOpacity(0.85),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    textAlign: TextAlign.start,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    // Static Page Indicator
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20, top: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          _wellnessTips.length,
-                          (dotIndex) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.symmetric(horizontal: 3),
-                            width: dotIndex == _currentTipIndex ? 16 : 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(3),
-                              color: dotIndex == _currentTipIndex
-                                  ? _wellnessTips[_currentTipIndex]['color']
-                                  : _wellnessTips[_currentTipIndex]['color']
-                                        .withOpacity(0.2),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          const SizedBox(height: 100),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickActionCard(
-    ThemeData theme, {
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 100,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: theme.textTheme.bodyLarge?.color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final textColor =
-        theme.textTheme.titleLarge?.color ??
-        (isDark ? Colors.white : const Color(0xFF2D2D2D));
-    final iconColor =
-        theme.iconTheme.color ??
-        (isDark ? Colors.white : const Color(0xFF2D2D2D));
-
-    Widget bodyContent = _buildHomeContent(theme, isDark, textColor, iconColor);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(child: bodyContent),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              HomeHeader(
+                onProfileTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  ).then((_) => _loadAppLockPreference());
+                },
+              ),
+              const SizedBox(height: 32),
+              const MoodTrackingCard(),
+              const SizedBox(height: 32),
+              QuickActionsSection(
+                onHistoryTap: _checkAuthAndNavigateToHistory,
+                onInsightsTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation1, animation2) =>
+                          const InsightsPage(),
+                      transitionDuration: Duration.zero,
+                      reverseTransitionDuration: Duration.zero,
+                    ),
+                  );
+                },
+                onSettingsTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  ).then((_) => _loadAppLockPreference());
+                },
+              ),
+              const SizedBox(height: 32),
+              WellnessTipsSection(
+                wellnessTips: _wellnessTips,
+                currentTipIndex: _currentTipIndex,
+                pageController: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentTipIndex = index;
+                  });
+                  _saveTipIndex(index);
+                },
+              ),
+              const SizedBox(height: 100),
+            ],
+          ),
+        ),
+      ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(top: 60),
         child: FloatingActionButton(
@@ -757,7 +383,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           },
           backgroundColor: const Color(0xFFB39DDB),
           elevation: 8,
-
           child: const Icon(Icons.add, size: 32),
         ),
       ),

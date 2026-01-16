@@ -43,10 +43,7 @@ class CustomNavigationBar extends StatelessWidget {
             icon: Icon(Icons.calendar_month_rounded),
             label: 'History',
           ),
-          BottomNavigationBarItem(
-            icon: SizedBox(width: 56),
-            label: '',
-          ),
+          BottomNavigationBarItem(icon: SizedBox(width: 56), label: ''),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart_rounded),
             label: 'Insights',
