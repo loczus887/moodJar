@@ -20,17 +20,59 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _selectedIndex = 0;
   final LocalAuthentication auth = LocalAuthentication();
 
-  // App Lock Variables
+  // App Lock
   DateTime? _lastAuthTime;
   static const Duration _authValidityDuration = Duration(minutes: 2);
   bool _isAuthenticating = false;
   bool _isAppLockEnabled = false;
+
+  // Wellness tips collection
+  final List<Map<String, dynamic>> _wellnessTips = [
+    {
+      'icon': Icons.self_improvement,
+      'title': 'Practice Mindfulness',
+      'tip':
+          'Take 5 minutes today to focus on your breathing and be present in the moment.',
+      'color': Color(0xFF9575CD),
+    },
+    {
+      'icon': Icons.bedtime,
+      'title': 'Prioritize Sleep',
+      'tip':
+          'Aim for 7-9 hours of quality sleep tonight. Your mind and body will thank you.',
+      'color': Color(0xFF64B5F6),
+    },
+    {
+      'icon': Icons.local_drink,
+      'title': 'Stay Hydrated',
+      'tip':
+          'Drinking water throughout the day can improve your mood and energy levels.',
+      'color': Color(0xFF81C784),
+    },
+    {
+      'icon': Icons.directions_walk,
+      'title': 'Move Your Body',
+      'tip':
+          'A short walk or stretch can help reduce stress and boost your mental clarity.',
+      'color': Color(0xFFFFB74D),
+    },
+    {
+      'icon': Icons.favorite,
+      'title': 'Practice Gratitude',
+      'tip':
+          'Think of three things you\'re grateful for today. It can shift your perspective.',
+      'color': Color(0xFFEF5350),
+    },
+  ];
+
+  int _currentTipIndex = 0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadAppLockPreference();
+    _loadTipIndex();
   }
 
   @override
@@ -48,27 +90,49 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _loadTipIndex() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _currentTipIndex = prefs.getInt('current_tip_index') ?? 0;
+      });
+    }
+  }
+
+  Future<void> _saveTipIndex() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('current_tip_index', _currentTipIndex);
+  }
+
+  void _nextTip() {
+    setState(() {
+      _currentTipIndex = (_currentTipIndex + 1) % _wellnessTips.length;
+    });
+    _saveTipIndex();
+  }
+
+  void _previousTip() {
+    setState(() {
+      _currentTipIndex =
+          (_currentTipIndex - 1 + _wellnessTips.length) % _wellnessTips.length;
+    });
+    _saveTipIndex();
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // App came to foreground
-      // Reload preference in case it changed in settings
       _loadAppLockPreference();
 
-      // If we are currently on the history screen (index 1), re-verify if needed
+      // Re-authenticate when returning to history screen
       if (_selectedIndex == 1 && _isAppLockEnabled) {
         _checkAuthAndNavigateToHistory();
       }
-    } else if (state == AppLifecycleState.paused) {
-      // App went to background
-      // No specific action needed, but _lastAuthTime remains set
     }
   }
 
   Future<bool> _authenticate() async {
-    // If App Lock is disabled, bypass authentication
     if (!_isAppLockEnabled) return true;
-
     if (_isAuthenticating) return false;
 
     // Check if previous authentication is still valid
@@ -132,10 +196,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const HistoryScreen()),
-        ).then((_) {
-          // When coming back from HistoryScreen, we don't necessarily need to reset auth immediately
-          // The timer will handle it.
-        });
+        );
       }
     } else {
       if (mounted) {
@@ -190,10 +251,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       userName = authState.user.displayName?.split(' ')[0] ?? 'Friend';
     }
 
+    final currentTip = _wellnessTips[_currentTipIndex];
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header with greeting and profile
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
             child: Row(
@@ -250,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
           const SizedBox(height: 32),
 
-          // Mood Card
+          // Main mood tracking card
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 24),
             padding: const EdgeInsets.all(24),
@@ -334,7 +398,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
           const SizedBox(height: 32),
 
-          // Quick Actions
+          // Quick actions section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Text(
@@ -394,46 +458,131 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
           const SizedBox(height: 32),
 
-          // Quote of the day (Placeholder)
+          // Wellness tip with navigation
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 24),
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: theme.cardColor,
+              gradient: LinearGradient(
+                colors: [
+                  currentTip['color'].withOpacity(0.1),
+                  currentTip['color'].withOpacity(0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+                color: currentTip['color'].withOpacity(0.3),
+                width: 1.5,
               ),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.format_quote,
-                  color: isDark ? Colors.grey[600] : Colors.grey[400],
-                  size: 32,
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: currentTip['color'].withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        currentTip['icon'],
+                        color: currentTip['color'],
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Wellness Tip',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark
+                                  ? Colors.grey[400]
+                                  : Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            currentTip['title'],
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: textColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
                 Text(
-                  "Every day may not be good... but there's something good in every day.",
-                  textAlign: TextAlign.center,
+                  currentTip['tip'],
                   style: TextStyle(
-                    fontSize: 16,
-                    fontStyle: FontStyle.italic,
-                    color: textColor.withOpacity(0.8),
+                    fontSize: 15,
+                    height: 1.5,
+                    color: textColor.withOpacity(0.85),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  "- Alice Morse Earle",
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.grey[500] : Colors.grey[500],
-                  ),
+                const SizedBox(height: 16),
+                // Navigation controls
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: List.generate(
+                        _wellnessTips.length,
+                        (index) => Container(
+                          margin: const EdgeInsets.only(right: 6),
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: index == _currentTipIndex
+                                ? currentTip['color']
+                                : (isDark
+                                      ? Colors.grey[700]
+                                      : Colors.grey[300]),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: _previousTip,
+                          icon: Icon(
+                            Icons.chevron_left,
+                            color: currentTip['color'],
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: _nextTip,
+                          icon: Icon(
+                            Icons.chevron_right,
+                            color: currentTip['color'],
+                          ),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 100), // Bottom padding for FAB
+          const SizedBox(height: 100),
         ],
       ),
     );
