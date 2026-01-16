@@ -1,0 +1,42 @@
+[
+  {
+    "tip": "Take a deep breath. Inhale for 4 seconds, hold for 7, exhale for 8.",
+    "category": "Relaxation"
+  },
+  {
+    "tip": "Drink a glass of water. Hydration affects your mood and energy levels.",
+    "category": "Health"
+  },
+  {
+    "tip": "Step outside for 5 minutes. Fresh air and sunlight can boost serotonin.",
+    "category": "Activity"
+  },
+  {
+    "tip": "Write down three things you are grateful for today.",
+    "category": "Mindfulness"
+  },
+  {
+    "tip": "Stretch your body. Release tension in your shoulders and neck.",
+    "category": "Physical"
+  },
+  {
+    "tip": "Listen to your favorite song and really focus on the melody.",
+    "category": "Joy"
+  },
+  {
+    "tip": "Declutter one small area of your space. A clear space helps a clear mind.",
+    "category": "Productivity"
+  },
+  {
+    "tip": "Call or text a friend just to say hello.",
+    "category": "Social"
+  },
+  {
+    "tip": "Put your phone away for 30 minutes and do something offline.",
+    "category": "Digital Detox"
+  },
+  {
+    "tip": "Practice positive self-talk. Treat yourself like you would a best friend.",
+    "category": "Self-Love"
+  }
+]

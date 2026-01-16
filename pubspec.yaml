@@ -43,6 +43,7 @@ flutter:
 
   assets:
     - assets/quotes.json
+    - assets/tips.json
 
 
 flutter_launcher_icons:
